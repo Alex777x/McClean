@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleDevelopmentRegion</key>
+    <string>en</string>
+    <key>CFBundleExecutable</key>
+    <string>McClean</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
+    <key>CFBundleIdentifier</key>
+    <string>com.mcclean.app</string>
+    <key>CFBundleInfoDictionaryVersion</key>
+    <string>6.0</string>
+    <key>CFBundleName</key>
+    <string>McClean</string>
+    <key>CFBundleDisplayName</key>
+    <string>McClean</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+    <key>CFBundleShortVersionString</key>
+    <string>1.0.0</string>
+    <key>CFBundleVersion</key>
+    <string>1</string>
+    <key>LSMinimumSystemVersion</key>
+    <string>14.0</string>
+    <key>LSApplicationCategoryType</key>
+    <string>public.app-category.utilities</string>
+    <key>NSHighResolutionCapable</key>
+    <true/>
+    <key>NSSupportsAutomaticTermination</key>
+    <false/>
+    <key>NSDesktopFolderUsageDescription</key>
+    <string>McClean optionally scans your Desktop for large forgotten files (.dmg, .zip, videos). It works normally even if you decline.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>McClean optionally scans your Documents folder for large archives and installers. It works normally even if you decline.</string>
+    <key>NSDownloadsFolderUsageDescription</key>
+    <string>McClean scans your Downloads folder for old installers (.dmg, .pkg) and large archives taking up space.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>McClean does not modify your Photos library. This optional permission is only used if you explicitly choose to inspect Photos library size.</string>
+    <key>NSAppleMusicUsageDescription</key>
+    <string>McClean only checks media cache sizes if you choose to grant media folder access.</string>
+</dict>
+</plist>

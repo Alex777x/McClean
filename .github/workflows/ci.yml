@@ -1,0 +1,39 @@
+name: Build & Verify McClean
+
+on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Build Open Source Release Bundle
+        run: zsh build_app.sh
+
+      - name: Run Self-Test Suite
+        run: ./McClean.app/Contents/MacOS/McClean --self-test
+
+      - name: Verify Mac App Store Build Mode (-DAPP_STORE)
+        run: |
+          zsh build_app.sh --app-store
+          ./McClean.app/Contents/MacOS/McClean --self-test
+
+      - name: Package Release Archive on Tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          zsh build_app.sh
+          ditto -c -k --keepParent McClean.app McClean-macOS.zip
+
+      - name: Publish GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: McClean-macOS.zip
+          generate_release_notes: true
