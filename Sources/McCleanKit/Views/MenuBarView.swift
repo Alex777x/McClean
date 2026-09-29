@@ -19,7 +19,7 @@ public struct MenuBarView: View {
                         .frame(width: 28, height: 28)
                     Image(systemName: "sparkles")
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundStyle(.white)
+                        .foregroundStyle(.primary)
                 }
                 
                 Text("McClean")
@@ -29,7 +29,7 @@ public struct MenuBarView: View {
                 Spacer()
                 
                 Text("\(viewModel.diskUsage.formattedFree) Free")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(McCleanTheme.accentEmerald.opacity(0.15), in: Capsule())
@@ -50,7 +50,7 @@ public struct MenuBarView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(McCleanTheme.textPrimary)
                     Text("\(viewModel.diskUsage.formattedUsed) of \(viewModel.diskUsage.formattedTotal) used")
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.system(size: 11)).monospacedDigit()
                         .foregroundStyle(McCleanTheme.textSecondary)
                 }
                 Spacer()
@@ -65,7 +65,7 @@ public struct MenuBarView: View {
                             .font(.system(size: 9, weight: .bold))
                             .foregroundStyle(McCleanTheme.textMuted)
                         Text(ByteCountFormatterHelper.format(bytes: viewModel.totalDiscoverableBytes))
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.system(size: 13, weight: .bold)).monospacedDigit()
                             .foregroundStyle(McCleanTheme.accentCyan)
                     }
                     Spacer()
@@ -74,7 +74,7 @@ public struct MenuBarView: View {
                             .font(.system(size: 9, weight: .bold))
                             .foregroundStyle(McCleanTheme.textMuted)
                         Text(ByteCountFormatterHelper.format(bytes: viewModel.selectedToCleanBytes))
-                            .font(.system(size: 13, weight: .bold, design: .monospaced))
+                            .font(.system(size: 13, weight: .bold)).monospacedDigit()
                             .foregroundStyle(McCleanTheme.accentEmerald)
                     }
                 }
@@ -92,7 +92,7 @@ public struct MenuBarView: View {
                         Text(viewModel.isScanning ? "Scanning..." : "Quick Scan")
                             .font(.system(size: 11, weight: .bold))
                     }
-                    .foregroundStyle(.white)
+                    .foregroundStyle(.primary)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
                     .background(McCleanTheme.brandGradient, in: RoundedRectangle(cornerRadius: 8))
@@ -111,7 +111,7 @@ public struct MenuBarView: View {
                         .foregroundStyle(McCleanTheme.textPrimary)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 8)
-                        .background(Color.white.opacity(0.08), in: RoundedRectangle(cornerRadius: 8))
+                        .background(Color.black.opacity(0.06), in: RoundedRectangle(cornerRadius: 8))
                 }
                 .buttonStyle(.plain)
             }
@@ -120,7 +120,7 @@ public struct MenuBarView: View {
             
             HStack {
                 Text("Lifetime Freed: \(ByteCountFormatterHelper.format(bytes: Int64(viewModel.lifetimeBytesFreed)))")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .font(.system(size: 10, weight: .medium)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textSecondary)
                 Spacer()
                 Button("Quit") {
@@ -134,6 +134,5 @@ public struct MenuBarView: View {
         .padding(14)
         .frame(width: 290)
         .background(McCleanTheme.canvasBackground)
-        .preferredColorScheme(.dark)
     }
 }

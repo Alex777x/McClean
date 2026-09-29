@@ -29,7 +29,7 @@ public struct SmartScanView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
                         Text("SYSTEM DIAGNOSTICS & STORAGE AUDIT")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.system(size: 10, weight: .bold))
                             .tracking(1.2)
                             .foregroundStyle(McCleanTheme.textMuted)
                         
@@ -37,7 +37,7 @@ public struct SmartScanView: View {
                     }
                     
                     Text("Deep Storage Inspection for macOS.")
-                        .font(.system(size: 34, weight: .regular, design: .serif))
+                        .font(.system(size: 34, weight: .semibold))
                         .tracking(-0.6)
                         .foregroundStyle(McCleanTheme.textPrimary)
                     
@@ -151,7 +151,7 @@ public struct SmartScanView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(index)
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold))
                     .foregroundStyle(McCleanTheme.textMuted)
                 
                 Spacer()
@@ -169,7 +169,7 @@ public struct SmartScanView: View {
                     .foregroundStyle(McCleanTheme.textPrimary)
                 
                 Text(pathHint)
-                    .font(.system(size: 10.5, design: .monospaced))
+                    .font(.system(size: 10.5))
                     .foregroundStyle(accent)
                     .lineLimit(1)
             }
@@ -193,7 +193,7 @@ public struct SmartScanView: View {
             ProgressView()
                 .controlSize(.regular)
             Text(viewModel.scanStatusMessage)
-                .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                .font(.system(size: 14, weight: .semibold))
                 .foregroundStyle(McCleanTheme.textPrimary)
             Text("Calculating physical APFS allocated blocks without following symlinks")
                 .font(.system(size: 11.5))
@@ -245,11 +245,11 @@ public struct SmartScanView: View {
                         
                         VStack(spacing: 1) {
                             Text(ByteCountFormatterHelper.format(bytes: viewModel.totalDiscoverableBytes))
-                                .font(.system(size: 13, weight: .bold, design: .monospaced))
+                                .font(.system(size: 13, weight: .bold))
                                 .monospacedDigit()
                                 .foregroundStyle(McCleanTheme.textPrimary)
                             Text("TOTAL")
-                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                .font(.system(size: 8.5, weight: .bold))
                                 .tracking(0.8)
                                 .foregroundStyle(McCleanTheme.textMuted)
                         }
@@ -259,7 +259,7 @@ public struct SmartScanView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("Storage Audit Summary")
-                            .font(.system(size: 18, weight: .regular, design: .serif))
+                            .font(.system(size: 18, weight: .semibold))
                             .tracking(-0.3)
                             .foregroundStyle(McCleanTheme.textPrimary)
                         Text("Nothing is selected automatically without your consent. Check specific items or click 'Select Only Safe' for this tab.")
@@ -317,19 +317,19 @@ public struct SmartScanView: View {
                     .fill(color)
                     .frame(width: 6, height: 6)
                 Text(title)
-                    .font(.system(size: 9, weight: .bold, design: .monospaced))
+                    .font(.system(size: 9, weight: .bold))
                     .tracking(0.6)
                     .foregroundStyle(McCleanTheme.textMuted)
             }
             Text(ByteCountFormatterHelper.format(bytes: bytes))
-                .font(.system(size: 14.5, weight: .bold, design: .monospaced))
+                .font(.system(size: 14.5, weight: .bold))
                 .monospacedDigit()
                 .foregroundStyle(McCleanTheme.textPrimary)
         }
         .padding(.horizontal, 12)
         .padding(.vertical, 10)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.025), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+        .background(Color.black.opacity(0.03), in: RoundedRectangle(cornerRadius: 6, style: .continuous))
         .overlay(
             RoundedRectangle(cornerRadius: 6, style: .continuous)
                 .strokeBorder(McCleanTheme.subtleBorder, lineWidth: 1)
@@ -379,7 +379,7 @@ public struct SmartScanView: View {
             viewModel.selectedSafetyFilter = level
         } label: {
             Text(title)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .monospaced))
+                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .padding(.horizontal, 11)
                 .padding(.vertical, 5)
                 .background(
@@ -422,10 +422,10 @@ public struct SmartScanView: View {
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
                         Text("\(items.count)")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.system(size: 10, weight: .bold))
                             .padding(.horizontal, 6)
                             .padding(.vertical, 1.5)
-                            .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 4))
+                            .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 4))
                             .foregroundStyle(McCleanTheme.textMuted)
                     }
                     Text(category.description)
@@ -437,12 +437,12 @@ public struct SmartScanView: View {
                 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(ByteCountFormatterHelper.format(bytes: totalCategoryBytes))
-                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .font(.system(size: 14, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(McCleanTheme.textPrimary)
                     if selectedCategoryBytes > 0 {
                         Text("\(ByteCountFormatterHelper.format(bytes: selectedCategoryBytes)) selected")
-                            .font(.system(size: 10, weight: .medium, design: .monospaced))
+                            .font(.system(size: 10, weight: .medium)).monospacedDigit()
                             .foregroundStyle(McCleanTheme.accentEmerald)
                     }
                 }

@@ -56,7 +56,7 @@ public struct ScanItemRowView: View {
                         
                         if item.isOrphaned {
                             Text("ORPHANED LEFTOVER")
-                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                .font(.system(size: 8.5, weight: .bold))
                                 .tracking(0.5)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
@@ -72,13 +72,13 @@ public struct ScanItemRowView: View {
                     
                     HStack(spacing: 8) {
                         Text(item.displayPath)
-                            .font(.system(size: 10.5, design: .monospaced))
+                            .font(.system(size: 10.5))
                             .foregroundStyle(McCleanTheme.textMuted)
                             .lineLimit(1)
                         
                         if item.fileCount > 1 {
                             Text("• \(item.fileCount) files")
-                                .font(.system(size: 10, weight: .medium, design: .monospaced))
+                                .font(.system(size: 10, weight: .medium))
                                 .foregroundStyle(McCleanTheme.textMuted)
                         }
                     }
@@ -101,7 +101,7 @@ public struct ScanItemRowView: View {
                                         .font(.system(size: 9.5, weight: .semibold))
                                 }
                                 Text("Inspect")
-                                    .font(.system(size: 10, weight: .semibold, design: .monospaced))
+                                    .font(.system(size: 10, weight: .semibold))
                             }
                             .padding(.horizontal, 8)
                             .padding(.vertical, 4.5)
@@ -149,7 +149,7 @@ public struct ScanItemRowView: View {
                 
                 // Monospace Formatted Size
                 Text(item.formattedSize)
-                    .font(.system(size: 13, weight: .bold, design: .monospaced))
+                    .font(.system(size: 13, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(item.isSelected ? McCleanTheme.textPrimary : McCleanTheme.textSecondary)
                     .frame(minWidth: 78, alignment: .trailing)
@@ -160,7 +160,7 @@ public struct ScanItemRowView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack {
                         Text("FOLDER INSPECTOR REPORT")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9, weight: .bold))
                             .tracking(0.8)
                             .foregroundStyle(McCleanTheme.accentViolet)
                         Spacer()
@@ -189,7 +189,7 @@ public struct ScanItemRowView: View {
                                 .font(.system(size: 10))
                                 .foregroundStyle(McCleanTheme.textMuted)
                             Text(child.name)
-                                .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(McCleanTheme.textSecondary)
                                 .lineLimit(1)
                             Spacer()
@@ -204,13 +204,13 @@ public struct ScanItemRowView: View {
                             .accessibilityLabel("Reveal \(child.name) in Finder")
                             
                             Text(child.formattedSize)
-                                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                                .font(.system(size: 11, weight: .semibold))
                                 .monospacedDigit()
                                 .foregroundStyle(McCleanTheme.textSecondary)
                         }
                         .padding(.vertical, 5)
                         .padding(.horizontal, 10)
-                        .background(Color.white.opacity(0.025), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
+                        .background(Color.black.opacity(0.03), in: RoundedRectangle(cornerRadius: 5, style: .continuous))
                     }
                 }
                 .padding(.leading, 30)

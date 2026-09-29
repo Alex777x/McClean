@@ -27,7 +27,7 @@ public struct PermissionOnboardingSheet: View {
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("Disk & Folder Permissions")
-                        .font(.system(size: 18, weight: .regular, design: .serif))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(McCleanTheme.textPrimary)
                     Text("Choose which folders McClean can scan and skip anything you prefer to keep private")
                         .font(.system(size: 11.5))
@@ -94,7 +94,6 @@ public struct PermissionOnboardingSheet: View {
         }
         .frame(width: 600, height: 520)
         .background(McCleanTheme.canvasBackground)
-        .preferredColorScheme(.dark)
         .onAppear {
             permissionManager.updateScopeStatusesWithoutPrompting()
         }
@@ -106,7 +105,7 @@ public struct PermissionOnboardingSheet: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Text("01")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
                 Text("RECOMMENDED HOME & SYSTEM ACCESS")
                     .font(.system(size: 10.5, weight: .bold))
@@ -122,7 +121,7 @@ public struct PermissionOnboardingSheet: View {
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
                         Text("RECOMMENDED")
-                            .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 8.5, weight: .bold))
                             .foregroundStyle(McCleanTheme.accentEmerald)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -181,7 +180,7 @@ public struct PermissionOnboardingSheet: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Text("02")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
                 Text("OPTIONAL USER FOLDERS (SKIP ANYTIME)")
                     .font(.system(size: 10.5, weight: .bold))
@@ -230,7 +229,7 @@ public struct PermissionOnboardingSheet: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Text("03")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
                 Text("PRIVACY & TCC PROTECTION")
                     .font(.system(size: 10.5, weight: .bold))
@@ -246,11 +245,11 @@ public struct PermissionOnboardingSheet: View {
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
                         Text(permissionManager.includePhotosLibrary && permissionManager.photosStatus == .granted ? "INCLUDED" : "SAFELY SKIPPED")
-                            .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 8.5, weight: .bold))
                             .foregroundStyle(McCleanTheme.textMuted)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
-                            .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+                            .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
                     }
                     Text("Skipped by default so macOS never blocks or prompts for your personal Photos library")
                         .font(.system(size: 11.5))
@@ -293,12 +292,12 @@ public struct PermissionOnboardingSheet: View {
                         .foregroundStyle(McCleanTheme.textPrimary)
                     
                     Text(status == .granted ? "GRANTED ✓" : "OPTIONAL")
-                        .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 8.5, weight: .bold))
                         .foregroundStyle(status == .granted ? McCleanTheme.accentEmerald : McCleanTheme.textMuted)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
-                            (status == .granted ? McCleanTheme.accentEmerald : Color.white).opacity(0.10),
+                            (status == .granted ? McCleanTheme.accentEmerald : Color.black).opacity(0.08),
                             in: RoundedRectangle(cornerRadius: 4, style: .continuous)
                         )
                 }

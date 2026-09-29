@@ -56,7 +56,7 @@ public struct BottomCleanupActionBar: View {
                             Image(systemName: "chart.pie")
                             Text("Last Freed: \(lastReport.formattedTotalFreed)")
                         }
-                        .font(.system(size: 10.5, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 10.5, weight: .semibold))
                         .padding(.horizontal, 11)
                         .padding(.vertical, 6)
                         .liquidGlassCapsule(tint: McCleanTheme.accentEmerald.opacity(0.22), interactive: true)
@@ -68,10 +68,10 @@ public struct BottomCleanupActionBar: View {
                 // Tab-Scoped Selected Summary
                 VStack(alignment: .trailing, spacing: 1) {
                     Text("\(viewModel.selectedItemsCount) selected in \(viewModel.selectedSection.rawValue)")
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .font(.system(size: 10, weight: .medium))
                         .foregroundStyle(McCleanTheme.textMuted)
                     Text(ByteCountFormatterHelper.format(bytes: viewModel.selectedToCleanBytes))
-                        .font(.system(size: 16, weight: .bold, design: .monospaced))
+                        .font(.system(size: 16, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(McCleanTheme.textPrimary)
                 }
@@ -91,7 +91,7 @@ public struct BottomCleanupActionBar: View {
                     .padding(.vertical, 9)
                     .background(
                         RoundedRectangle(cornerRadius: 6, style: .continuous)
-                            .fill(viewModel.selectedItemsCount > 0 ? McCleanTheme.textPrimary : Color.white.opacity(0.06))
+                            .fill(viewModel.selectedItemsCount > 0 ? McCleanTheme.textPrimary : Color.black.opacity(0.05))
                     )
                 }
                 .buttonStyle(.plain)
@@ -130,12 +130,12 @@ public struct CleanupConfirmationSheet: View {
         VStack(alignment: .leading, spacing: 18) {
             VStack(alignment: .leading, spacing: 6) {
                 Text("CONFIRM PERMANENT DELETION • \(viewModel.selectedSection.rawValue.uppercased())")
-                    .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                    .font(.system(size: 9.5, weight: .bold))
                     .tracking(1.0)
                     .foregroundStyle(McCleanTheme.textMuted)
                 
                 Text("Permanently Free \(ByteCountFormatterHelper.format(bytes: viewModel.selectedToCleanBytes))?")
-                    .font(.system(size: 24, weight: .regular, design: .serif))
+                    .font(.system(size: 24, weight: .semibold))
                     .tracking(-0.4)
                     .foregroundStyle(McCleanTheme.textPrimary)
                 
@@ -176,14 +176,14 @@ public struct CleanupConfirmationSheet: View {
                                     .foregroundStyle(McCleanTheme.textPrimary)
                                     .lineLimit(1)
                                 Text(item.displayPath)
-                                    .font(.system(size: 10, design: .monospaced))
+                                    .font(.system(size: 10))
                                     .foregroundStyle(McCleanTheme.textMuted)
                                     .lineLimit(1)
                             }
                             Spacer()
                             SafetyBadgePill(level: item.safetyLevel)
                             Text(item.formattedSize)
-                                .font(.system(size: 12, weight: .bold, design: .monospaced))
+                                .font(.system(size: 12, weight: .bold))
                                 .monospacedDigit()
                                 .foregroundStyle(McCleanTheme.textPrimary)
                                 .frame(width: 80, alignment: .trailing)
@@ -260,17 +260,17 @@ public struct CleanupReportChartSheet: View {
             HStack(alignment: .top, spacing: 16) {
                 VStack(alignment: .leading, spacing: 5) {
                     Text("CLEANUP REPORT • IMMEDIATE DELETION")
-                        .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 9.5, weight: .bold))
                         .tracking(1.0)
                         .foregroundStyle(McCleanTheme.accentEmerald)
                     
                     Text("Space Reclaimed Immediately.")
-                        .font(.system(size: 26, weight: .regular, design: .serif))
+                        .font(.system(size: 26, weight: .semibold))
                         .tracking(-0.4)
                         .foregroundStyle(McCleanTheme.textPrimary)
                     
                     Text("Permanently removed \(report.deletedItemCount) item(s) in \(String(format: "%.1f", max(0.1, report.durationSeconds)))s")
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(size: 12))
                         .foregroundStyle(McCleanTheme.textSecondary)
                 }
                 
@@ -278,11 +278,11 @@ public struct CleanupReportChartSheet: View {
                 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("TOTAL FREED")
-                        .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 9.5, weight: .bold))
                         .tracking(0.8)
                         .foregroundStyle(McCleanTheme.textMuted)
                     Text(report.formattedTotalFreed)
-                        .font(.system(size: 28, weight: .bold, design: .monospaced))
+                        .font(.system(size: 28, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(McCleanTheme.accentEmerald)
                 }
@@ -309,11 +309,11 @@ public struct CleanupReportChartSheet: View {
                         
                         VStack(spacing: 2) {
                             Text(report.formattedTotalFreed)
-                                .font(.system(size: 14, weight: .bold, design: .monospaced))
+                                .font(.system(size: 14, weight: .bold))
                                 .monospacedDigit()
                                 .foregroundStyle(McCleanTheme.textPrimary)
                             Text("RECLAIMED")
-                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                .font(.system(size: 8.5, weight: .bold))
                                 .tracking(0.6)
                                 .foregroundStyle(McCleanTheme.textMuted)
                         }
@@ -321,7 +321,7 @@ public struct CleanupReportChartSheet: View {
                     
                     VStack(alignment: .leading, spacing: 10) {
                         Text("CATEGORY BREAKDOWN")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .font(.system(size: 10, weight: .bold))
                             .tracking(0.8)
                             .foregroundStyle(McCleanTheme.textMuted)
                         
@@ -338,10 +338,10 @@ public struct CleanupReportChartSheet: View {
                                         .foregroundStyle(McCleanTheme.textPrimary)
                                     Spacer()
                                     Text("\(metric.itemCount) items")
-                                        .font(.system(size: 10, design: .monospaced))
+                                        .font(.system(size: 10))
                                         .foregroundStyle(McCleanTheme.textMuted)
                                     Text(metric.formattedBytes)
-                                        .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                                        .font(.system(size: 11.5, weight: .bold))
                                         .monospacedDigit()
                                         .foregroundStyle(McCleanTheme.textPrimary)
                                 }
@@ -349,7 +349,7 @@ public struct CleanupReportChartSheet: View {
                                 GeometryReader { geo in
                                     ZStack(alignment: .leading) {
                                         RoundedRectangle(cornerRadius: 2, style: .continuous)
-                                            .fill(Color.white.opacity(0.06))
+                                            .fill(Color.black.opacity(0.05))
                                         RoundedRectangle(cornerRadius: 2, style: .continuous)
                                             .fill(catColor)
                                             .frame(width: max(6, geo.size.width * proportion))
@@ -369,19 +369,21 @@ public struct CleanupReportChartSheet: View {
             VStack(alignment: .leading, spacing: 10) {
                 HStack {
                     Text("MACINTOSH HD FREE SPACE IMPACT")
-                        .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 9.5, weight: .bold))
                         .tracking(0.8)
                         .foregroundStyle(McCleanTheme.textMuted)
                     Spacer()
                     HStack(spacing: 6) {
                         Text("Before: \(report.formattedFreeBefore)")
-                            .font(.system(size: 11, design: .monospaced))
+                            .font(.system(size: 11))
+                            .monospacedDigit()
                             .foregroundStyle(McCleanTheme.textSecondary)
                         Image(systemName: "arrow.right")
                             .font(.system(size: 9.5, weight: .bold))
                             .foregroundStyle(McCleanTheme.accentEmerald)
                         Text("After: \(report.formattedFreeAfter)")
-                            .font(.system(size: 11.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 11.5, weight: .bold))
+                            .monospacedDigit()
                             .foregroundStyle(McCleanTheme.accentEmerald)
                     }
                 }
@@ -393,7 +395,7 @@ public struct CleanupReportChartSheet: View {
                     
                     ZStack(alignment: .leading) {
                         RoundedRectangle(cornerRadius: 3, style: .continuous)
-                            .fill(Color.white.opacity(0.06))
+                            .fill(Color.black.opacity(0.05))
                         
                         HStack(spacing: 2) {
                             RoundedRectangle(cornerRadius: 3, style: .continuous)
@@ -413,15 +415,15 @@ public struct CleanupReportChartSheet: View {
                 HStack(spacing: 16) {
                     HStack(spacing: 5) {
                         Circle().fill(McCleanTheme.textSecondary.opacity(0.55)).frame(width: 7, height: 7)
-                        Text("Used Space").font(.system(size: 10, design: .monospaced)).foregroundStyle(McCleanTheme.textMuted)
+                        Text("Used Space").font(.system(size: 10)).foregroundStyle(McCleanTheme.textMuted)
                     }
                     HStack(spacing: 5) {
                         Circle().fill(McCleanTheme.accentEmerald).frame(width: 7, height: 7)
-                        Text("Reclaimed (\(report.formattedTotalFreed))").font(.system(size: 10, weight: .semibold, design: .monospaced)).foregroundStyle(McCleanTheme.accentEmerald)
+                        Text("Reclaimed (\(report.formattedTotalFreed))").font(.system(size: 10, weight: .semibold)).monospacedDigit().foregroundStyle(McCleanTheme.accentEmerald)
                     }
                     HStack(spacing: 5) {
-                        Circle().fill(Color.white.opacity(0.20)).frame(width: 7, height: 7)
-                        Text("Free (\(report.formattedFreeAfter))").font(.system(size: 10, design: .monospaced)).foregroundStyle(McCleanTheme.textMuted)
+                        Circle().fill(Color.black.opacity(0.12)).frame(width: 7, height: 7)
+                        Text("Free (\(report.formattedFreeAfter))").font(.system(size: 10)).monospacedDigit().foregroundStyle(McCleanTheme.textMuted)
                     }
                 }
             }
@@ -431,11 +433,11 @@ public struct CleanupReportChartSheet: View {
             if !report.failedItems.isEmpty {
                 VStack(alignment: .leading, spacing: 4) {
                     Text("\(report.failedItems.count) item(s) skipped (protected or in use):")
-                        .font(.system(size: 10.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 10.5, weight: .bold))
                         .foregroundStyle(McCleanTheme.accentAmber)
                     ForEach(report.failedItems.prefix(3)) { fail in
                         Text("• \(fail.name): \(fail.reason)")
-                            .font(.system(size: 10.5, design: .monospaced))
+                            .font(.system(size: 10.5))
                             .foregroundStyle(McCleanTheme.textSecondary)
                     }
                 }

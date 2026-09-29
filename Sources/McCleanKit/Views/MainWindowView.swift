@@ -42,24 +42,19 @@ public struct MainWindowView: View {
             .background(McCleanTheme.windowBackground)
         }
         .frame(minWidth: 1180, minHeight: 680)
-        .preferredColorScheme(.dark)
         .sheet(isPresented: $viewModel.isShowingCleanupConfirmation) {
             CleanupConfirmationSheet(viewModel: viewModel)
-                .preferredColorScheme(.dark)
         }
         .sheet(isPresented: $viewModel.isShowingCleanupReportSheet) {
             if let report = viewModel.latestCleanupReport {
                 CleanupReportChartSheet(report: report)
-                    .preferredColorScheme(.dark)
             }
         }
         .sheet(isPresented: $viewModel.isShowingSettingsSheet) {
             SettingsView(viewModel: viewModel, permissionManager: permissionManager)
-                .preferredColorScheme(.dark)
         }
         .sheet(isPresented: $viewModel.isShowingPermissionSheet) {
             PermissionOnboardingSheet(viewModel: viewModel, permissionManager: permissionManager)
-                .preferredColorScheme(.dark)
         }
     }
     
@@ -87,12 +82,17 @@ public struct MainWindowView: View {
             HStack(spacing: 10) {
                 ZStack {
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .fill(McCleanTheme.textPrimary)
+                        .fill(McCleanTheme.cardBackground)
                         .frame(width: 30, height: 30)
+                        .shadow(color: .black.opacity(0.06), radius: 3, x: 0, y: 1)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 7, style: .continuous)
+                                .strokeBorder(McCleanTheme.subtleBorder, lineWidth: 1)
+                        )
                     
-                    Image(systemName: "internaldrive")
+                    Image(systemName: "sparkles")
                         .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(McCleanTheme.inkDark)
+                        .foregroundStyle(McCleanTheme.textPrimary)
                 }
                 
                 VStack(alignment: .leading, spacing: 1) {
@@ -103,7 +103,7 @@ public struct MainWindowView: View {
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
                         Text("OSS")
-                            .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 8.5, weight: .bold))
                             .tracking(0.6)
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1.5)
@@ -143,7 +143,7 @@ public struct MainWindowView: View {
             
             // Section Header
             Text("MODULES")
-                .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                .font(.system(size: 9.5, weight: .bold))
                 .tracking(1.1)
                 .foregroundStyle(McCleanTheme.textMuted)
                 .padding(.horizontal, 16)
@@ -189,7 +189,7 @@ public struct MainWindowView: View {
                         .lineLimit(1)
                     
                     Text(shortDescription(for: section))
-                        .font(.system(size: 10, design: .monospaced))
+                        .font(.system(size: 10))
                         .foregroundStyle(McCleanTheme.textMuted)
                         .lineLimit(1)
                 }
@@ -198,12 +198,12 @@ public struct MainWindowView: View {
                 
                 if bytes > 0 {
                     Text(ByteCountFormatterHelper.format(bytes: bytes))
-                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .font(.system(size: 10, weight: .medium))
                         .monospacedDigit()
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(
-                            Color.white.opacity(isSelected ? 0.10 : 0.04),
+                            Color.black.opacity(isSelected ? 0.08 : 0.04),
                             in: RoundedRectangle(cornerRadius: 4, style: .continuous)
                         )
                         .foregroundStyle(isSelected ? McCleanTheme.textPrimary : McCleanTheme.textSecondary)
@@ -243,10 +243,10 @@ public struct MainWindowView: View {
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundStyle(McCleanTheme.textPrimary)
                     Text("\(viewModel.diskUsage.formattedFree) available")
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.system(size: 11, weight: .medium)).monospacedDigit()
                         .foregroundStyle(McCleanTheme.accentEmerald)
                     Text("of \(viewModel.diskUsage.formattedTotal)")
-                        .font(.system(size: 10, design: .monospaced))
+                        .font(.system(size: 10))
                         .foregroundStyle(McCleanTheme.textMuted)
                 }
                 Spacer()
@@ -259,11 +259,11 @@ public struct MainWindowView: View {
             HStack(alignment: .center) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text("RECLAIMED TOTAL")
-                        .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 8.5, weight: .bold))
                         .tracking(0.6)
                         .foregroundStyle(McCleanTheme.textMuted)
                     Text(ByteCountFormatterHelper.format(bytes: viewModel.lifetimeBytesFreed))
-                        .font(.system(size: 13.5, weight: .bold, design: .monospaced))
+                        .font(.system(size: 13.5, weight: .bold))
                         .monospacedDigit()
                         .foregroundStyle(McCleanTheme.textPrimary)
                 }

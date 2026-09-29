@@ -25,12 +25,12 @@ public struct LargeFilesView: View {
                 HStack(alignment: .top, spacing: 16) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("DISK ARCHIVES & SPACE LENS • 50MB+ FILES")
-                            .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9.5, weight: .bold))
                             .tracking(1.0)
                             .foregroundStyle(accent)
                         
                         Text("Large Files & Space Lens Explorer.")
-                            .font(.system(size: 24, weight: .regular, design: .serif))
+                            .font(.system(size: 24, weight: .semibold))
                             .tracking(-0.4)
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
@@ -43,11 +43,11 @@ public struct LargeFilesView: View {
                     
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("LARGE FILES FOUND")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9, weight: .bold))
                             .tracking(0.6)
                             .foregroundStyle(McCleanTheme.textMuted)
                         Text(ByteCountFormatterHelper.format(bytes: totalLargeBytes))
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .font(.system(size: 22, weight: .bold))
                             .monospacedDigit()
                             .foregroundStyle(McCleanTheme.textPrimary)
                     }
@@ -122,7 +122,7 @@ public struct LargeFilesView: View {
             viewModel.largeFilesTab = tag
         } label: {
             Text(title)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .monospaced))
+                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(isSelected ? McCleanTheme.textPrimary : McCleanTheme.cardBackground, in: Capsule())
@@ -139,7 +139,7 @@ public struct LargeFilesView: View {
             viewModel.minimumLargeFileSizeMB = sizeMB
         } label: {
             Text(label)
-                .font(.system(size: 10.5, weight: isSelected ? .bold : .regular, design: .monospaced))
+                .font(.system(size: 10.5, weight: isSelected ? .bold : .regular))
                 .padding(.horizontal, 9)
                 .padding(.vertical, 5)
                 .background(isSelected ? McCleanTheme.textPrimary : McCleanTheme.cardBackground, in: Capsule())
@@ -200,11 +200,11 @@ public struct LargeFilesView: View {
                 VStack(alignment: .leading, spacing: 5) {
                     HStack(spacing: 8) {
                         Text(node.name)
-                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                            .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(McCleanTheme.textPrimary)
                         if isHidden {
                             Text("DOT-FOLDER")
-                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                .font(.system(size: 8.5, weight: .bold))
                                 .tracking(0.5)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 1.5)
@@ -217,7 +217,7 @@ public struct LargeFilesView: View {
                     GeometryReader { geo in
                         ZStack(alignment: .leading) {
                             RoundedRectangle(cornerRadius: 2, style: .continuous)
-                                .fill(Color.white.opacity(0.06))
+                                .fill(Color.black.opacity(0.05))
                             RoundedRectangle(cornerRadius: 2, style: .continuous)
                                 .fill(barColor)
                                 .frame(width: geo.size.width * ratio)
@@ -241,7 +241,7 @@ public struct LargeFilesView: View {
                 .accessibilityLabel("Reveal \(node.name) in Finder")
                 
                 Text(node.formattedSize)
-                    .font(.system(size: 13.5, weight: .bold, design: .monospaced))
+                    .font(.system(size: 13.5, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(McCleanTheme.textPrimary)
                     .frame(width: 88, alignment: .trailing)
@@ -259,12 +259,12 @@ public struct LargeFilesView: View {
                                         .font(.system(size: 9))
                                         .foregroundStyle(McCleanTheme.textMuted)
                                     Text("\(sub.name) (\(sub.formattedSize))")
-                                        .font(.system(size: 10, design: .monospaced))
+                                        .font(.system(size: 10)).monospacedDigit()
                                         .foregroundStyle(McCleanTheme.textSecondary)
                                 }
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
-                                .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 4))
+                                .background(Color.black.opacity(0.03), in: RoundedRectangle(cornerRadius: 4))
                             }
                             .buttonStyle(.plain)
                         }

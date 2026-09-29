@@ -71,6 +71,7 @@ zsh build_app.sh --app-store
 
 ---
 
-## License
+## License & Privacy
 
-Released under the [MIT License](LICENSE).
+- **License:** Released under the [MIT License](LICENSE).
+- **Privacy Policy:** McClean collects zero user data and operates 100% locally. Read our full [Privacy Policy](PRIVACY.md).

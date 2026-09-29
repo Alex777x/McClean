@@ -34,12 +34,12 @@ public struct SystemJunkView: View {
                 HStack(alignment: .top, spacing: 16) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("SYSTEM & DEVELOPER STORAGE • IDLEASSETSD & CACHES")
-                            .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9.5, weight: .bold))
                             .tracking(1.0)
                             .foregroundStyle(accent)
                         
                         Text("4K Aerial Wallpapers, Caches & Build Bloat.")
-                            .font(.system(size: 24, weight: .regular, design: .serif))
+                            .font(.system(size: 24, weight: .semibold))
                             .tracking(-0.4)
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
@@ -52,11 +52,11 @@ public struct SystemJunkView: View {
                     
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("RECLAIMABLE BLOAT")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9, weight: .bold))
                             .tracking(0.6)
                             .foregroundStyle(McCleanTheme.textMuted)
                         Text(ByteCountFormatterHelper.format(bytes: totalBytes))
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .font(.system(size: 22, weight: .bold))
                             .monospacedDigit()
                             .foregroundStyle(McCleanTheme.textPrimary)
                     }
@@ -113,7 +113,7 @@ public struct SystemJunkView: View {
             viewModel.systemJunkFilter = category
         } label: {
             Text(title)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .monospaced))
+                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 5.5)
                 .background(isSelected ? McCleanTheme.textPrimary : McCleanTheme.cardBackground, in: Capsule())

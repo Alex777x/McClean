@@ -25,12 +25,12 @@ public struct DotfilesView: View {
                 HStack(alignment: .top, spacing: 16) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("UNIX DOTFILES • ~/.* & ~/.CONFIG")
-                            .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9.5, weight: .bold))
                             .tracking(1.0)
                             .foregroundStyle(accent)
                         
                         Text("Hidden Dotfiles & Directories.")
-                            .font(.system(size: 24, weight: .regular, design: .serif))
+                            .font(.system(size: 24, weight: .semibold))
                             .tracking(-0.4)
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
@@ -43,11 +43,11 @@ public struct DotfilesView: View {
                     
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("DISCOVERED SIZE")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9, weight: .bold))
                             .tracking(0.6)
                             .foregroundStyle(McCleanTheme.textMuted)
                         Text(ByteCountFormatterHelper.format(bytes: totalDotfilesBytes))
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .font(.system(size: 22, weight: .bold))
                             .monospacedDigit()
                             .foregroundStyle(McCleanTheme.textPrimary)
                     }
@@ -84,7 +84,7 @@ public struct DotfilesView: View {
             viewModel.selectedSafetyFilter = level
         } label: {
             Text(title)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .monospaced))
+                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .padding(.horizontal, 11)
                 .padding(.vertical, 5)
                 .background(isSelected ? McCleanTheme.textPrimary : McCleanTheme.cardBackground, in: Capsule())

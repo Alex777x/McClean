@@ -25,7 +25,7 @@ public struct SettingsView: View {
                 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("McClean Preferences")
-                        .font(.system(size: 18, weight: .regular, design: .serif))
+                        .font(.system(size: 18, weight: .semibold))
                         .foregroundStyle(McCleanTheme.textPrimary)
                     Text("Configure disk access permissions, AI Folder Inspector, and protected paths")
                         .font(.system(size: 11.5))
@@ -69,7 +69,6 @@ public struct SettingsView: View {
         }
         .frame(width: 600, height: 520)
         .background(McCleanTheme.canvasBackground)
-        .preferredColorScheme(.dark)
     }
     
     // MARK: - General & Hybrid Permissions Card
@@ -78,7 +77,7 @@ public struct SettingsView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Text("01")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
                 Text("GENERAL & HYBRID DISK ACCESS")
                     .font(.system(size: 10.5, weight: .bold))
@@ -97,7 +96,7 @@ public struct SettingsView: View {
                 }
                 Spacer()
                 Text("IMMEDIATE PERMANENT DELETE")
-                    .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                    .font(.system(size: 9.5, weight: .bold))
                     .foregroundStyle(McCleanTheme.accentEmerald)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 5)
@@ -168,7 +167,7 @@ public struct SettingsView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Text("02")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
                 Text("AI FOLDER INSPECTOR ENGINE")
                     .font(.system(size: 10.5, weight: .bold))
@@ -220,7 +219,7 @@ public struct SettingsView: View {
                         .foregroundStyle(McCleanTheme.textSecondary)
                     TextField("llama3.2", text: $viewModel.ollamaModel)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(size: 12))
                         .foregroundStyle(McCleanTheme.textPrimary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -237,7 +236,7 @@ public struct SettingsView: View {
                 VStack(spacing: 8) {
                     TextField("OpenAI-compatible Endpoint URL", text: $viewModel.customAPIEndpoint)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(size: 12))
                         .foregroundStyle(McCleanTheme.textPrimary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -249,7 +248,7 @@ public struct SettingsView: View {
                     
                     SecureField("API Key", text: $viewModel.customAPIKey)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(size: 12))
                         .foregroundStyle(McCleanTheme.textPrimary)
                         .padding(.horizontal, 10)
                         .padding(.vertical, 6)
@@ -275,7 +274,7 @@ public struct SettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 8) {
                 Text("03")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
                 Text("PROTECTED WHITELIST (NEVER DELETED)")
                     .font(.system(size: 10.5, weight: .bold))
@@ -284,13 +283,13 @@ public struct SettingsView: View {
             }
             
             Text("Built-in Locked Paths: ~/.ssh, ~/.gnupg, ~/.aws, ~/.kube, ~/.zshrc, ~/.gitconfig, ~/Library/Keychains, /System")
-                .font(.system(size: 11, design: .monospaced))
+                .font(.system(size: 11))
                 .foregroundStyle(McCleanTheme.textSecondary)
             
             HStack(spacing: 10) {
                 TextField("Add custom path to protect (e.g. /Users/you/.myfolder)", text: $viewModel.newWhitelistPath)
                     .textFieldStyle(.plain)
-                    .font(.system(size: 12, design: .monospaced))
+                    .font(.system(size: 12))
                     .foregroundStyle(McCleanTheme.textPrimary)
                     .padding(.horizontal, 10)
                     .padding(.vertical, 7)
@@ -325,7 +324,7 @@ public struct SettingsView: View {
                                 .font(.system(size: 10))
                                 .foregroundStyle(McCleanTheme.accentEmerald)
                             Text(path)
-                                .font(.system(size: 11, design: .monospaced))
+                                .font(.system(size: 11))
                                 .foregroundStyle(McCleanTheme.textPrimary)
                             Spacer()
                             Button {
@@ -354,7 +353,7 @@ public struct SettingsView: View {
         VStack(alignment: .leading, spacing: 14) {
             HStack(spacing: 8) {
                 Text("04")
-                    .font(.system(size: 10, weight: .bold, design: .monospaced))
+                    .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
                 Text("UPDATES & OPEN SOURCE")
                     .font(.system(size: 10.5, weight: .bold))
@@ -370,7 +369,7 @@ public struct SettingsView: View {
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
                         Text("MIT LICENSE")
-                            .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 8.5, weight: .bold))
                             .foregroundStyle(McCleanTheme.accentEmerald)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)

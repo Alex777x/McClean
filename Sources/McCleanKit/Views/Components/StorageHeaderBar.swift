@@ -23,7 +23,7 @@ public struct StorageHeaderBar: View {
                         
                         if viewModel.isScanning {
                             Text("SCANNING")
-                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                .font(.system(size: 8.5, weight: .bold))
                                 .tracking(0.6)
                                 .padding(.horizontal, 6)
                                 .padding(.vertical, 2)
@@ -33,7 +33,7 @@ public struct StorageHeaderBar: View {
                     }
                     
                     Text(viewModel.isScanning ? viewModel.scanStatusMessage : viewModel.selectedSection.subtitle)
-                        .font(.system(size: 11, design: viewModel.isScanning ? .monospaced : .default))
+                        .font(.system(size: 11))
                         .foregroundStyle(viewModel.isScanning ? McCleanTheme.accentCyan : McCleanTheme.textSecondary)
                         .lineLimit(1)
                 }
@@ -49,7 +49,7 @@ public struct StorageHeaderBar: View {
                     
                     TextField("Filter by name or path...", text: $viewModel.searchQuery)
                         .textFieldStyle(.plain)
-                        .font(.system(size: 11.5, design: .monospaced))
+                        .font(.system(size: 11.5))
                         .foregroundStyle(McCleanTheme.textPrimary)
                     
                     if !viewModel.searchQuery.isEmpty {
@@ -57,11 +57,11 @@ public struct StorageHeaderBar: View {
                             viewModel.searchQuery = ""
                         } label: {
                             Text("ESC")
-                                .font(.system(size: 8.5, weight: .bold, design: .monospaced))
+                                .font(.system(size: 8.5, weight: .bold))
                                 .foregroundStyle(McCleanTheme.textSecondary)
                                 .padding(.horizontal, 4)
                                 .padding(.vertical, 1.5)
-                                .background(Color.white.opacity(0.06), in: RoundedRectangle(cornerRadius: 3))
+                                .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 3))
                         }
                         .buttonStyle(.plain)
                         .accessibilityLabel("Clear search")

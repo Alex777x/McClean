@@ -1,39 +1,39 @@
 import SwiftUI
 
-/// Premium Utilitarian Minimalism + Native macOS 26 Liquid Glass Design System.
-/// Enforces warm monochrome surfaces, editorial typography, muted pastel semantic tokens,
-/// crisp 1px Bento borders, zero neon gradients/glows, and native `glassEffect` / `GlassEffectContainer`.
+/// Premium Light Theme Design System — Warm Cream Surfaces, SF Pro Typography, Muted Accents.
+/// Applies insights from: redesign-existing-projects, high-end-visual-design, swiftui-expert-skill.
+/// Single warm gray family, one accent palette, semantic tokens, Double-Bezel card architecture.
 public enum McCleanTheme {
-    // MARK: - Warm Monochrome Surfaces
-    public static let windowBackground = Color(red: 0.067, green: 0.067, blue: 0.063)       // #111110 Warm Obsidian
+    // MARK: - Warm Cream Light Surfaces
+    public static let windowBackground = Color(red: 0.976, green: 0.973, blue: 0.965)       // #F9F8F6 Warm Cream Canvas
     public static let canvasBackground = windowBackground
-    public static let sidebarBackground = Color(red: 0.082, green: 0.082, blue: 0.075)      // #151513 Warm Graphite
-    public static let cardBackground = Color(red: 0.102, green: 0.102, blue: 0.094)         // #1A1A18 Flat Bento Card
-    public static let elevatedCardBackground = Color(red: 0.137, green: 0.137, blue: 0.125) // #232320 Selected Bento Card
+    public static let sidebarBackground = Color(red: 0.949, green: 0.945, blue: 0.929)      // #F2F1ED Warm Sidebar
+    public static let cardBackground = Color.white                                            // #FFFFFF Clean Card
+    public static let elevatedCardBackground = Color(red: 0.961, green: 0.957, blue: 0.941) // #F5F4F0 Active/Hover Card
     
-    // MARK: - Crisp 1px Structural Hairlines
-    public static let subtleBorder = Color.white.opacity(0.07)
+    // MARK: - Crisp 1px Structural Hairlines (Dark Ink on Light)
+    public static let subtleBorder = Color.black.opacity(0.06)
     public static let borderSubtle = subtleBorder
-    public static let highlightBorder = Color.white.opacity(0.16)
+    public static let highlightBorder = Color.black.opacity(0.10)
     
-    // MARK: - Editorial Typography Colors
-    public static let textPrimary = Color(red: 0.957, green: 0.953, blue: 0.937)            // #F4F3EF Warm Bone White
-    public static let textSecondary = Color(red: 0.620, green: 0.616, blue: 0.596)          // #9E9D98 Muted Stone
-    public static let textMuted = Color(red: 0.431, green: 0.427, blue: 0.408)              // #6E6D68 Subtle Charcoal Gray
-    public static let inkDark = Color(red: 0.067, green: 0.067, blue: 0.063)                // #111110 High-contrast Ink
+    // MARK: - Typography Colors (High-Contrast on Light)
+    public static let textPrimary = Color(red: 0.102, green: 0.102, blue: 0.094)            // #1A1A18 Dark Graphite
+    public static let textSecondary = Color(red: 0.420, green: 0.416, blue: 0.400)          // #6B6A66 Warm Medium Gray
+    public static let textMuted = Color(red: 0.620, green: 0.616, blue: 0.596)              // #9E9D98 Soft Stone
+    public static let inkDark = Color.white                                                   // White text on dark buttons
     
-    // MARK: - Muted Pastel Semantic Accents (No Neon)
-    public static let accentCyan = Color(red: 0.58, green: 0.74, blue: 0.86)                // Muted Slate Blue
-    public static let accentEmerald = Color(red: 0.52, green: 0.76, blue: 0.60)             // Muted Sage Green
-    public static let accentViolet = Color(red: 0.70, green: 0.64, blue: 0.84)              // Muted Lavender
-    public static let accentAmber = Color(red: 0.86, green: 0.72, blue: 0.46)               // Muted Ochre Sand
-    public static let accentCoral = Color(red: 0.86, green: 0.54, blue: 0.52)               // Muted Terracotta Rose
+    // MARK: - Saturated Semantic Accents (WCAG AA on Light Backgrounds)
+    public static let accentCyan = Color(red: 0.20, green: 0.55, blue: 0.75)                // Deep Slate Blue
+    public static let accentEmerald = Color(red: 0.22, green: 0.62, blue: 0.38)             // Deep Emerald
+    public static let accentViolet = Color(red: 0.48, green: 0.38, blue: 0.72)              // Rich Violet
+    public static let accentAmber = Color(red: 0.72, green: 0.56, blue: 0.18)               // Deep Ochre
+    public static let accentCoral = Color(red: 0.78, green: 0.32, blue: 0.30)               // Rich Terracotta
     
-    // MARK: - Flat Utilitarian Fills (Replacing Neon Gradients)
+    // MARK: - Dark Action Fills (Premium Dark Buttons on Light Canvas)
     public static let primaryGradient = LinearGradient(
         colors: [
-            Color(red: 0.94, green: 0.93, blue: 0.90),
-            Color(red: 0.88, green: 0.87, blue: 0.84)
+            Color(red: 0.102, green: 0.102, blue: 0.094),  // #1A1A18
+            Color(red: 0.165, green: 0.165, blue: 0.149)   // #2A2A26
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -42,8 +42,8 @@ public enum McCleanTheme {
     
     public static let cleanActionGradient = LinearGradient(
         colors: [
-            Color(red: 0.24, green: 0.42, blue: 0.30),
-            Color(red: 0.20, green: 0.36, blue: 0.26)
+            Color(red: 0.106, green: 0.420, blue: 0.227),  // #1B6B3A Deep Emerald
+            Color(red: 0.082, green: 0.376, blue: 0.188)   // #156030
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -51,8 +51,8 @@ public enum McCleanTheme {
     
     public static let dangerGradient = LinearGradient(
         colors: [
-            Color(red: 0.52, green: 0.22, blue: 0.22),
-            Color(red: 0.44, green: 0.18, blue: 0.18)
+            Color(red: 0.753, green: 0.188, blue: 0.188),  // #C03030 Vivid Red
+            Color(red: 0.659, green: 0.157, blue: 0.157)   // #A82828
         ],
         startPoint: .top,
         endPoint: .bottom
@@ -68,11 +68,11 @@ public enum McCleanTheme {
         case .orphanedLeftovers:
             return accentAmber
         case .appAndBrowserCaches:
-            return Color(red: 0.64, green: 0.76, blue: 0.82)
+            return Color(red: 0.18, green: 0.52, blue: 0.62)   // Deeper teal for light bg
         case .developerAndAICaches:
             return accentEmerald
         case .logsAndDiagnostics:
-            return Color(red: 0.80, green: 0.62, blue: 0.68)
+            return Color(red: 0.68, green: 0.36, blue: 0.48)   // Deeper mauve for light bg
         case .largeFilesAndDownloads:
             return accentCoral
         }
@@ -104,6 +104,7 @@ public enum McCleanTheme {
         }
     }
 }
+
 
 // MARK: - Native macOS 26+ Liquid Glass Containers & Modifiers
 
@@ -180,7 +181,7 @@ public extension View {
         } else {
             self
                 .background(
-                    (tint ?? Color.white).opacity(0.10),
+                    (tint ?? Color.black).opacity(0.06),
                     in: Capsule()
                 )
                 .overlay(
@@ -213,12 +214,12 @@ public struct GlassCheckbox: View {
         Button(action: action) {
             ZStack {
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
-                    .fill(isChecked ? McCleanTheme.textPrimary : Color.white.opacity(0.03))
+                    .fill(isChecked ? McCleanTheme.textPrimary : Color.black.opacity(0.03))
                     .frame(width: 18, height: 18)
                 
                 RoundedRectangle(cornerRadius: 5, style: .continuous)
                     .strokeBorder(
-                        isChecked ? McCleanTheme.textPrimary : Color.white.opacity(0.22),
+                        isChecked ? McCleanTheme.textPrimary : Color.black.opacity(0.15),
                         lineWidth: 1
                     )
                     .frame(width: 18, height: 18)
@@ -251,7 +252,7 @@ public struct SafetyBadgePill: View {
             Image(systemName: level.iconName)
                 .font(.system(size: 8.5, weight: .semibold))
             Text(level.badgeTitle.uppercased())
-                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                .font(.system(size: 9, weight: .semibold))
                 .tracking(0.5)
         }
         .padding(.horizontal, 7)
@@ -275,13 +276,13 @@ public struct KeycapBadge: View {
     
     public var body: some View {
         Text(label)
-            .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+            .font(.system(size: 9.5, weight: .medium))
             .foregroundStyle(McCleanTheme.textMuted)
             .padding(.horizontal, 5)
             .padding(.vertical, 2)
             .background(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
-                    .fill(Color.white.opacity(0.04))
+                    .fill(Color.black.opacity(0.04))
             )
             .overlay(
                 RoundedRectangle(cornerRadius: 4, style: .continuous)
@@ -320,7 +321,7 @@ public struct CircularDiskGauge: View {
     public var body: some View {
         ZStack {
             Circle()
-                .stroke(Color.white.opacity(0.08), lineWidth: lineWidth)
+                .stroke(Color.black.opacity(0.06), lineWidth: lineWidth)
             
             Circle()
                 .trim(from: 0, to: fraction)
@@ -331,7 +332,7 @@ public struct CircularDiskGauge: View {
                 .rotationEffect(.degrees(-90))
             
             Text("\(Int((fraction * 100).rounded()))%")
-                .font(.system(size: size * 0.22, weight: .semibold, design: .monospaced))
+                .font(.system(size: size * 0.22, weight: .semibold))
                 .monospacedDigit()
                 .foregroundStyle(McCleanTheme.textPrimary)
         }

@@ -25,12 +25,12 @@ public struct AppLeftoversView: View {
                 HStack(alignment: .top, spacing: 16) {
                     VStack(alignment: .leading, spacing: 5) {
                         Text("APPLICATION CONTAINERS • ~/LIBRARY")
-                            .font(.system(size: 9.5, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9.5, weight: .bold))
                             .tracking(1.0)
                             .foregroundStyle(accent)
                         
                         Text("Orphaned App Leftovers & Uninstaller.")
-                            .font(.system(size: 24, weight: .regular, design: .serif))
+                            .font(.system(size: 24, weight: .semibold))
                             .tracking(-0.4)
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
@@ -43,11 +43,11 @@ public struct AppLeftoversView: View {
                     
                     VStack(alignment: .trailing, spacing: 2) {
                         Text("ORPHANED BAGGAGE")
-                            .font(.system(size: 9, weight: .bold, design: .monospaced))
+                            .font(.system(size: 9, weight: .bold))
                             .tracking(0.6)
                             .foregroundStyle(McCleanTheme.textMuted)
                         Text(ByteCountFormatterHelper.format(bytes: totalOrphanBytes))
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .font(.system(size: 22, weight: .bold))
                             .monospacedDigit()
                             .foregroundStyle(McCleanTheme.textPrimary)
                     }
@@ -80,7 +80,6 @@ public struct AppLeftoversView: View {
         }
         .sheet(item: $viewModel.appToConfirmUninstall) { app in
             uninstallConfirmationModal(for: app)
-                .preferredColorScheme(.dark)
         }
     }
     
@@ -90,7 +89,7 @@ public struct AppLeftoversView: View {
             viewModel.appLeftoversTab = tag
         } label: {
             Text(title)
-                .font(.system(size: 11, weight: isSelected ? .semibold : .regular, design: .monospaced))
+                .font(.system(size: 11, weight: isSelected ? .semibold : .regular))
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
                 .background(isSelected ? McCleanTheme.textPrimary : McCleanTheme.cardBackground, in: Capsule())
@@ -159,25 +158,25 @@ public struct AppLeftoversView: View {
                             .font(.system(size: 13.5, weight: .semibold))
                             .foregroundStyle(McCleanTheme.textPrimary)
                         Text("v\(app.version)")
-                            .font(.system(size: 9.5, weight: .medium, design: .monospaced))
+                            .font(.system(size: 9.5, weight: .medium)).monospacedDigit()
                             .padding(.horizontal, 5)
                             .padding(.vertical, 1.5)
-                            .background(Color.white.opacity(0.05), in: RoundedRectangle(cornerRadius: 4))
+                            .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 4))
                             .foregroundStyle(McCleanTheme.textMuted)
                     }
                     
                     Text(app.bundleIdentifier)
-                        .font(.system(size: 10.5, design: .monospaced))
+                        .font(.system(size: 10.5))
                         .foregroundStyle(McCleanTheme.textMuted)
                     
                     HStack(spacing: 10) {
                         Text("Bundle: \(app.formattedAppSize)")
-                            .font(.system(size: 10.5, design: .monospaced))
+                            .font(.system(size: 10.5)).monospacedDigit()
                             .foregroundStyle(McCleanTheme.textSecondary)
                         Text("•")
                             .foregroundStyle(McCleanTheme.textMuted)
                         Text("Library: \(app.formattedSupportSize) (\(app.relatedItems.count) folders)")
-                            .font(.system(size: 10.5, weight: .medium, design: .monospaced))
+                            .font(.system(size: 10.5, weight: .medium)).monospacedDigit()
                             .foregroundStyle(McCleanTheme.accentAmber)
                     }
                 }
@@ -185,7 +184,7 @@ public struct AppLeftoversView: View {
                 Spacer()
                 
                 Text(app.formattedTotalSize)
-                    .font(.system(size: 14.5, weight: .bold, design: .monospaced))
+                    .font(.system(size: 14.5, weight: .bold))
                     .monospacedDigit()
                     .foregroundStyle(McCleanTheme.textPrimary)
                 
@@ -206,10 +205,10 @@ public struct AppLeftoversView: View {
                 HStack(spacing: 6) {
                     ForEach(app.relatedItems.prefix(4)) { rel in
                         Text("\(rel.name) (\(rel.formattedSize))")
-                            .font(.system(size: 9.5, design: .monospaced))
+                            .font(.system(size: 9.5)).monospacedDigit()
                             .padding(.horizontal, 7)
                             .padding(.vertical, 3)
-                            .background(Color.white.opacity(0.03), in: RoundedRectangle(cornerRadius: 4))
+                            .background(Color.black.opacity(0.03), in: RoundedRectangle(cornerRadius: 4))
                             .foregroundStyle(McCleanTheme.textMuted)
                             .lineLimit(1)
                     }
@@ -246,7 +245,7 @@ public struct AppLeftoversView: View {
                     .frame(width: 44, height: 44)
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Completely Uninstall \(app.name)?")
-                        .font(.system(size: 20, weight: .regular, design: .serif))
+                        .font(.system(size: 20, weight: .semibold))
                         .foregroundStyle(McCleanTheme.textPrimary)
                     Text("Permanently deletes \(app.name).app and all \(app.relatedItems.count) associated ~/Library folders (\(app.formattedTotalSize) total).")
                         .font(.system(size: 12))
@@ -258,9 +257,9 @@ public struct AppLeftoversView: View {
                 LazyVStack(alignment: .leading, spacing: 5) {
                     HStack {
                         Image(systemName: "app").foregroundStyle(McCleanTheme.textPrimary)
-                        Text(app.bundleURL.path).font(.system(size: 11, design: .monospaced)).foregroundStyle(McCleanTheme.textPrimary)
+                        Text(app.bundleURL.path).font(.system(size: 11)).foregroundStyle(McCleanTheme.textPrimary)
                         Spacer()
-                        Text(app.formattedAppSize).font(.system(size: 11, weight: .bold, design: .monospaced)).foregroundStyle(McCleanTheme.textPrimary)
+                        Text(app.formattedAppSize).font(.system(size: 11, weight: .bold)).monospacedDigit().foregroundStyle(McCleanTheme.textPrimary)
                     }
                     .padding(8)
                     .glassCard(cornerRadius: 6)
@@ -268,9 +267,9 @@ public struct AppLeftoversView: View {
                     ForEach(app.relatedItems) { item in
                         HStack {
                             Image(systemName: "folder").foregroundStyle(McCleanTheme.accentAmber)
-                            Text(item.displayPath).font(.system(size: 11, design: .monospaced)).foregroundStyle(McCleanTheme.textSecondary)
+                            Text(item.displayPath).font(.system(size: 11)).foregroundStyle(McCleanTheme.textSecondary)
                             Spacer()
-                            Text(item.formattedSize).font(.system(size: 11, weight: .bold, design: .monospaced)).foregroundStyle(McCleanTheme.textPrimary)
+                            Text(item.formattedSize).font(.system(size: 11, weight: .bold)).monospacedDigit().foregroundStyle(McCleanTheme.textPrimary)
                         }
                         .padding(8)
                         .glassCard(cornerRadius: 6)

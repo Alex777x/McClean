@@ -29,7 +29,7 @@ final class McCleanAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
     
     func applicationDidFinishLaunching(_ notification: Notification) {
         NSApp.setActivationPolicy(.regular)
-        NSApp.appearance = NSAppearance(named: .darkAqua)
+        NSApp.appearance = NSAppearance(named: .aqua)
         NSWindow.allowsAutomaticWindowTabbing = false
         
         if let iconURL = Bundle.main.url(forResource: "AppIcon", withExtension: "icns"),
@@ -104,7 +104,7 @@ final class McCleanAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         window.title = "McClean"
         window.minSize = NSSize(width: 1180, height: 680)
         window.contentMinSize = NSSize(width: 1180, height: 680)
-        window.backgroundColor = NSColor(red: 0.067, green: 0.067, blue: 0.063, alpha: 1.0)
+        window.backgroundColor = NSColor(red: 0.976, green: 0.973, blue: 0.965, alpha: 1.0)
         window.titlebarAppearsTransparent = true
         window.isReleasedWhenClosed = false
         window.delegate = self
