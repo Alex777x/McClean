@@ -389,7 +389,7 @@ public struct SettingsView: View {
                     HStack(spacing: 6) {
                         Image(systemName: "cup.and.saucer.fill")
                             .font(.system(size: 11, weight: .semibold))
-                        Text("Buy Me a Coffee")
+                        Text("Support on GitHub")
                             .font(.system(size: 11.5, weight: .semibold))
                     }
                     .foregroundStyle(McCleanTheme.accentAmber)

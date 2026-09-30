@@ -21,8 +21,10 @@ public final class UpdateCheckerService: ObservableObject {
         URL(string: "https://github.com/\(repositorySlug)")!
     }
     
-    /// Donation / "Buy Me a Coffee" URL for supporting the open-source project.
-    public var donationURL: URL = URL(string: "https://buymeacoffee.com/alex777x")!
+    /// Support URL pointing to the GitHub repository's Support section (100% App Store Review compliant).
+    public var donationURL: URL {
+        URL(string: "https://github.com/\(repositorySlug)#support-the-project")!
+    }
     
     private init() {}
     

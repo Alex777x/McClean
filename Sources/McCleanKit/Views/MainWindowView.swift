@@ -305,7 +305,7 @@ public struct MainWindowView: View {
                     .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(McCleanTheme.accentAmber)
                 
-                Text("Buy Me a Coffee")
+                Text("Support on GitHub")
                     .font(.system(size: 11.5, weight: .semibold))
                     .foregroundStyle(McCleanTheme.textPrimary)
                 
@@ -328,8 +328,8 @@ public struct MainWindowView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("Support McClean development — Buy the author a coffee!")
-        .accessibilityLabel("Buy Me a Coffee")
+        .help("Support McClean on GitHub (PayPal / Star the repository)")
+        .accessibilityLabel("Support on GitHub")
     }
 }
 

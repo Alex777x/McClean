@@ -128,7 +128,7 @@ final class McCleanAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         
         appMenu.addItem(withTitle: "About McClean", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
         
-        let donateItem = NSMenuItem(title: "Buy Me a Coffee...", action: #selector(openDonatePage), keyEquivalent: "")
+        let donateItem = NSMenuItem(title: "Support on GitHub...", action: #selector(openDonatePage), keyEquivalent: "")
         donateItem.target = self
         appMenu.addItem(donateItem)
         
