@@ -328,7 +328,7 @@ public struct MainWindowView: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .help("Support McClean on GitHub (PayPal / Star the repository)")
+        .help("Support McClean on GitHub (Buy Me a Coffee / Star the repository)")
         .accessibilityLabel("Support on GitHub")
     }
 }

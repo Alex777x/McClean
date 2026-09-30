@@ -13,7 +13,7 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-389E61.svg" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/Platform-macOS%2014%2B%20%2F%2026%2B-338CC0.svg" alt="macOS 14+" />
   <img src="https://img.shields.io/badge/Swift-5.9%2B-F05138.svg" alt="Swift 5.9+" />
-  <a href="https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=alexandroff103x%40gmail.com&item_name=Support+McClean+Open+Source+macOS+App&currency_code=USD"><img src="https://img.shields.io/badge/Donate-PayPal-00457C.svg?logo=paypal&logoColor=white" alt="Donate via PayPal" /></a>
+  <a href="https://buymeacoffee.com/alexandrofc"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-ffdd00?logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" /></a>
 </p>
 
 ---
@@ -32,10 +32,9 @@ Most macOS disk cleaners hide behind expensive annual subscriptions while only s
 
 ## Support the Project
 
-McClean is developed and maintained for the community at zero cost. If McClean helped you reclaim gigabytes of disk space on your Mac, you can thank the author with a coffee via **PayPal**:
+McClean is developed and maintained for the community at zero cost. If McClean helped you reclaim gigabytes of disk space on your Mac, you can buy the author a coffee:
 
-- ☕ **Donate via PayPal (1-Click):** [Click here to donate via PayPal](https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=alexandroff103x%40gmail.com&item_name=Support+McClean+Open+Source+macOS+App&currency_code=USD)
-- 💳 **PayPal Email:** `alexandroff103x@gmail.com`
+- ☕ **Buy Me a Coffee:** [https://buymeacoffee.com/alexandrofc](https://buymeacoffee.com/alexandrofc)
 
 ---
 
