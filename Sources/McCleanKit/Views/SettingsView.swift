@@ -347,7 +347,7 @@ public struct SettingsView: View {
         .glassCard(cornerRadius: 10)
     }
     
-    // MARK: - About & App Store Updates Card
+    // MARK: - Open Source, Support & Updates Card
     
     private var updatesAndOpenSourceCard: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -355,7 +355,7 @@ public struct SettingsView: View {
                 Text("04")
                     .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
-                Text("ABOUT & UPDATES")
+                Text("OPEN SOURCE & SUPPORT")
                     .font(.system(size: 10.5, weight: .bold))
                     .tracking(1.1)
                     .foregroundStyle(McCleanTheme.textMuted)
@@ -368,17 +368,74 @@ public struct SettingsView: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
-                        Text("100% LOCAL & PRIVATE")
+                        Text("MIT LICENSE")
                             .font(.system(size: 8.5, weight: .bold))
                             .foregroundStyle(McCleanTheme.accentEmerald)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(McCleanTheme.accentEmerald.opacity(0.14), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
                     }
-                    Text("Updates are delivered automatically via the Mac App Store")
+                    Text("100% Free & Open Source. If McClean saved your disk space, consider buying a coffee!")
                         .font(.system(size: 11.5))
                         .foregroundStyle(McCleanTheme.textSecondary)
                 }
+                Spacer()
+            }
+            
+            HStack(spacing: 8) {
+                Button {
+                    UpdateCheckerService.shared.openDonationPage()
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "cup.and.saucer.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                        Text("Buy Me a Coffee")
+                            .font(.system(size: 11.5, weight: .semibold))
+                    }
+                    .foregroundStyle(McCleanTheme.accentAmber)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(McCleanTheme.accentAmber.opacity(0.12))
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .strokeBorder(McCleanTheme.accentAmber.opacity(0.32), lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                
+                Button {
+                    UpdateCheckerService.shared.openRepositoryPage()
+                } label: {
+                    HStack(spacing: 5) {
+                        Image(systemName: "chevron.left.forwardslash.chevron.right")
+                            .font(.system(size: 10.5, weight: .semibold))
+                        Text("GitHub Repo")
+                            .font(.system(size: 11.5, weight: .semibold))
+                    }
+                    .foregroundStyle(McCleanTheme.textPrimary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .liquidGlassRect(cornerRadius: 7)
+                }
+                .buttonStyle(.plain)
+                
+                #if !APP_STORE
+                Button {
+                    UpdateCheckerService.shared.checkForUpdates(showAlertIfUpToDate: true)
+                } label: {
+                    Text("Check for Updates")
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(McCleanTheme.inkDark)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(McCleanTheme.textPrimary, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
+                }
+                .buttonStyle(.plain)
+                #endif
+                
                 Spacer()
             }
         }

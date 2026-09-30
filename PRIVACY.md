@@ -3,7 +3,7 @@
 **Effective Date:** September 30, 2026  
 **Last Updated:** September 30, 2026
 
-McClean ("the Application") is a native macOS disk space analyzer and cleanup utility. We believe your file system and personal data belong strictly to you.
+McClean ("the Application") is a free, open-source macOS disk space analyzer and cleanup utility. We believe your file system and personal data belong strictly to you.
 
 ---
 
@@ -36,6 +36,10 @@ McClean includes a built-in, offline heuristic engine ("Built-in Smart Heuristic
 
 ---
 
-## 4. App Updates
+## 4. Update Checks & Open Source Verification
 
-Application updates are delivered and managed automatically by macOS and the Mac App Store.
+In the direct GitHub release version of McClean, clicking **Check for Updates...** makes a standard HTTPS request to the public GitHub Releases API (`api.github.com/repos/Alex777x/McClean/releases/latest`) to compare the latest release tag against your installed version. In the Mac App Store version, updates are managed automatically by macOS and the App Store.
+
+McClean is open-source software licensed under the MIT License:
+- **GitHub Repository:** [https://github.com/Alex777x/McClean](https://github.com/Alex777x/McClean)
+- **Support & Issues:** [https://github.com/Alex777x/McClean/issues](https://github.com/Alex777x/McClean/issues)

@@ -127,6 +127,17 @@ final class McCleanAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
         appMenuItem.submenu = appMenu
         
         appMenu.addItem(withTitle: "About McClean", action: #selector(NSApplication.orderFrontStandardAboutPanel(_:)), keyEquivalent: "")
+        
+        let donateItem = NSMenuItem(title: "Buy Me a Coffee...", action: #selector(openDonatePage), keyEquivalent: "")
+        donateItem.target = self
+        appMenu.addItem(donateItem)
+        
+        #if !APP_STORE
+        let checkUpdatesItem = NSMenuItem(title: "Check for Updates...", action: #selector(checkForUpdates), keyEquivalent: "u")
+        checkUpdatesItem.target = self
+        appMenu.addItem(checkUpdatesItem)
+        #endif
+        
         appMenu.addItem(.separator())
         
         let prefsItem = NSMenuItem(title: "Preferences...", action: #selector(openPreferences), keyEquivalent: ",")
@@ -172,6 +183,10 @@ final class McCleanAppDelegate: NSObject, NSApplicationDelegate, NSWindowDelegat
     @objc private func openPreferences() {
         mainWindow?.makeKeyAndOrderFront(nil)
         viewModel.isShowingSettingsSheet = true
+    }
+    
+    @objc private func openDonatePage() {
+        UpdateCheckerService.shared.openDonationPage()
     }
     
     @objc private func checkForUpdates() {

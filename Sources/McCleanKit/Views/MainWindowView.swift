@@ -96,10 +96,21 @@ public struct MainWindowView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 1) {
-                    Text("McClean")
-                        .font(.system(size: 15, weight: .semibold))
-                        .tracking(-0.3)
-                        .foregroundStyle(McCleanTheme.textPrimary)
+                    HStack(spacing: 6) {
+                        Text("McClean")
+                            .font(.system(size: 15, weight: .semibold))
+                            .tracking(-0.3)
+                            .foregroundStyle(McCleanTheme.textPrimary)
+                        
+                        Text("OSS")
+                            .font(.system(size: 8.5, weight: .bold))
+                            .tracking(0.6)
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1.5)
+                            .background(McCleanTheme.accentEmerald.opacity(0.14), in: Capsule())
+                            .foregroundStyle(McCleanTheme.accentEmerald)
+                            .help("Open-Source Software — 100% Free & Open Source macOS Utility")
+                    }
                     
                     Text("macOS Storage Utility")
                         .font(.system(size: 10.5, weight: .regular))
@@ -150,9 +161,12 @@ public struct MainWindowView: View {
             
             Spacer()
             
-            // Flat Bento Disk Status Card
-            sidebarStorageCard
-                .padding(12)
+            // Flat Bento Disk Status Card + Buy Me a Coffee Support Button
+            VStack(spacing: 8) {
+                sidebarStorageCard
+                sidebarDonateButton
+            }
+            .padding(12)
         }
     }
     
@@ -280,6 +294,42 @@ public struct MainWindowView: View {
         }
         .padding(12)
         .glassCard(cornerRadius: 8)
+    }
+    
+    private var sidebarDonateButton: some View {
+        Button {
+            UpdateCheckerService.shared.openDonationPage()
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "cup.and.saucer.fill")
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(McCleanTheme.accentAmber)
+                
+                Text("Buy Me a Coffee")
+                    .font(.system(size: 11.5, weight: .semibold))
+                    .foregroundStyle(McCleanTheme.textPrimary)
+                
+                Spacer()
+                
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 9.5, weight: .bold))
+                    .foregroundStyle(McCleanTheme.accentCoral)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .fill(McCleanTheme.accentAmber.opacity(0.10))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                    .strokeBorder(McCleanTheme.accentAmber.opacity(0.28), lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .help("Support McClean development — Buy the author a coffee!")
+        .accessibilityLabel("Buy Me a Coffee")
     }
 }
 

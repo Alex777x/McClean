@@ -21,10 +21,17 @@ public final class UpdateCheckerService: ObservableObject {
         URL(string: "https://github.com/\(repositorySlug)")!
     }
     
+    /// Donation / "Buy Me a Coffee" URL for supporting the open-source project.
+    public var donationURL: URL = URL(string: "https://buymeacoffee.com/alex777x")!
+    
     private init() {}
     
     public func openRepositoryPage() {
         NSWorkspace.shared.open(repositoryURL)
+    }
+    
+    public func openDonationPage() {
+        NSWorkspace.shared.open(donationURL)
     }
     
     public func checkForUpdates(showAlertIfUpToDate: Bool = true) {
