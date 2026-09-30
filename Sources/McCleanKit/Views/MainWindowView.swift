@@ -96,21 +96,10 @@ public struct MainWindowView: View {
                 }
                 
                 VStack(alignment: .leading, spacing: 1) {
-                    HStack(spacing: 6) {
-                        Text("McClean")
-                            .font(.system(size: 15, weight: .semibold))
-                            .tracking(-0.3)
-                            .foregroundStyle(McCleanTheme.textPrimary)
-                        
-                        Text("OSS")
-                            .font(.system(size: 8.5, weight: .bold))
-                            .tracking(0.6)
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1.5)
-                            .background(McCleanTheme.accentEmerald.opacity(0.14), in: Capsule())
-                            .foregroundStyle(McCleanTheme.accentEmerald)
-                            .help("Open-Source Software — Free & Open Source macOS Utility")
-                    }
+                    Text("McClean")
+                        .font(.system(size: 15, weight: .semibold))
+                        .tracking(-0.3)
+                        .foregroundStyle(McCleanTheme.textPrimary)
                     
                     Text("macOS Storage Utility")
                         .font(.system(size: 10.5, weight: .regular))

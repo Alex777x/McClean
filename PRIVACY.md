@@ -1,9 +1,9 @@
 # Privacy Policy for McClean
 
-**Effective Date:** September 29, 2026  
-**Last Updated:** September 29, 2026
+**Effective Date:** September 30, 2026  
+**Last Updated:** September 30, 2026
 
-McClean ("the Application") is an open-source macOS disk space analyzer and cleanup utility. We believe your file system and personal data belong strictly to you.
+McClean ("the Application") is a native macOS disk space analyzer and cleanup utility. We believe your file system and personal data belong strictly to you.
 
 ---
 
@@ -29,22 +29,13 @@ To analyze disk usage and reclaim storage space, McClean scans folders that you 
 
 ## 3. Optional AI Folder Diagnostics
 
-McClean includes an built-in, offline heuristic engine ("Built-in Smart Heuristics") that evaluates unfamiliar hidden dot-directories locally without any network connection.
+McClean includes a built-in, offline heuristic engine ("Built-in Smart Heuristics") that evaluates unfamiliar hidden dot-directories locally without any network connection.
 
 - **Optional Custom Endpoint:** If you explicitly configure an optional local LLM (such as Ollama running on `http://localhost:11434`) or a custom OpenAI-compatible API endpoint in Settings, McClean will send only the anonymized structural metadata of the specific folder you choose to inspect (folder name, child file extensions, and byte sizes) to the endpoint you configured.
 - By default, no external network requests are ever made during scanning or cleanup.
 
 ---
 
-## 4. Update Checks (Direct / Open-Source Distribution Only)
+## 4. App Updates
 
-In the direct GitHub release version of McClean, clicking **Check for Updates...** makes a standard HTTPS request to the public GitHub Releases API (`api.github.com/repos/Alex777x/McClean/releases/latest`) to compare the latest release tag against your installed version. In the Mac App Store version, updates are managed entirely by macOS and the App Store.
-
----
-
-## 5. Contact & Open Source Verification
-
-McClean is open-source software licensed under the MIT License. You can inspect the complete source code and verify our privacy practices at any time:
-
-- **GitHub Repository:** [https://github.com/Alex777x/McClean](https://github.com/Alex777x/McClean)
-- **Support & Issues:** [https://github.com/Alex777x/McClean/issues](https://github.com/Alex777x/McClean/issues)
+Application updates are delivered and managed automatically by macOS and the Mac App Store.

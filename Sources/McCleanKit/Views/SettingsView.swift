@@ -347,7 +347,7 @@ public struct SettingsView: View {
         .glassCard(cornerRadius: 10)
     }
     
-    // MARK: - Updates & Open Source Card
+    // MARK: - About & App Store Updates Card
     
     private var updatesAndOpenSourceCard: some View {
         VStack(alignment: .leading, spacing: 14) {
@@ -355,7 +355,7 @@ public struct SettingsView: View {
                 Text("04")
                     .font(.system(size: 10, weight: .bold)).monospacedDigit()
                     .foregroundStyle(McCleanTheme.textMuted)
-                Text("UPDATES & OPEN SOURCE")
+                Text("ABOUT & UPDATES")
                     .font(.system(size: 10.5, weight: .bold))
                     .tracking(1.1)
                     .foregroundStyle(McCleanTheme.textMuted)
@@ -368,51 +368,18 @@ public struct SettingsView: View {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundStyle(McCleanTheme.textPrimary)
                         
-                        Text("MIT LICENSE")
+                        Text("100% LOCAL & PRIVATE")
                             .font(.system(size: 8.5, weight: .bold))
                             .foregroundStyle(McCleanTheme.accentEmerald)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
                             .background(McCleanTheme.accentEmerald.opacity(0.14), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
                     }
-                    #if APP_STORE
-                    Text("Updates are delivered automatically via the macOS App Store")
+                    Text("Updates are delivered automatically via the Mac App Store")
                         .font(.system(size: 11.5))
                         .foregroundStyle(McCleanTheme.textSecondary)
-                    #else
-                    Text("Checks GitHub Releases for new versions or view source code on GitHub")
-                        .font(.system(size: 11.5))
-                        .foregroundStyle(McCleanTheme.textSecondary)
-                    #endif
                 }
                 Spacer()
-                HStack(spacing: 8) {
-                    Button {
-                        UpdateCheckerService.shared.openRepositoryPage()
-                    } label: {
-                        Text("GitHub Repo")
-                            .font(.system(size: 11.5, weight: .semibold))
-                            .foregroundStyle(McCleanTheme.textPrimary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .liquidGlassRect(cornerRadius: 7)
-                    }
-                    .buttonStyle(.plain)
-                    
-                    #if !APP_STORE
-                    Button {
-                        UpdateCheckerService.shared.checkForUpdates(showAlertIfUpToDate: true)
-                    } label: {
-                        Text("Check for Updates")
-                            .font(.system(size: 11.5, weight: .semibold))
-                            .foregroundStyle(McCleanTheme.inkDark)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 6)
-                            .background(McCleanTheme.textPrimary, in: RoundedRectangle(cornerRadius: 7, style: .continuous))
-                    }
-                    .buttonStyle(.plain)
-                    #endif
-                }
             }
         }
         .padding(18)
