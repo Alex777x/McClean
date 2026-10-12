@@ -39,6 +39,17 @@ public struct InstalledApp: Identifiable, Hashable, Sendable {
         appBundleSizeBytes + relatedSupportBytes
     }
     
+    public var isSystemApp: Bool {
+        bundleURL.path.hasPrefix("/System/") || bundleURL.path.hasPrefix("/System/Applications")
+    }
+    
+    public var installLocationLabel: String {
+        let p = bundleURL.path
+        if p.hasPrefix("/System/") { return "macOS System" }
+        if p.contains("/Users/") { return "~/Applications" }
+        return "/Applications"
+    }
+    
     public var formattedTotalSize: String {
         ByteCountFormatterHelper.format(bytes: totalFootprintBytes)
     }

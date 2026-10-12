@@ -1,6 +1,7 @@
 import SwiftUI
+import AppKit
 
-/// Module for Orphaned Application Leftovers and Complete App Uninstaller with Utilitarian Editorial Minimalism.
+/// Module for Complete Application Uninstallation and Orphaned Residual Data Cleanup.
 public struct AppLeftoversView: View {
     @ObservedObject var viewModel: AppViewModel
     
@@ -16,71 +17,109 @@ public struct AppLeftoversView: View {
         orphanItems.reduce(0) { $0 + $1.sizeBytes }
     }
     
+    private var totalInstalledAppsBytes: Int64 {
+        viewModel.installedApps.reduce(0) { $0 + $1.totalFootprintBytes }
+    }
+    
     public var body: some View {
         let accent = McCleanTheme.color(for: .appLeftovers)
         
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 16) {
                 // Editorial Header Card
-                HStack(alignment: .top, spacing: 16) {
-                    VStack(alignment: .leading, spacing: 5) {
-                        Text("APPLICATION CONTAINERS • ~/LIBRARY")
-                            .font(.system(size: 9.5, weight: .bold))
-                            .tracking(1.0)
-                            .foregroundStyle(accent)
-                        
-                        Text("Orphaned App Leftovers & Uninstaller.")
-                            .font(.system(size: 24, weight: .semibold))
-                            .tracking(-0.4)
-                            .foregroundStyle(McCleanTheme.textPrimary)
-                        
-                        Text("Dragging an app to Trash leaves gigabytes behind in ~/Library/Application Support, Caches, and Saved State. Clean orphaned remnants or completely uninstall active apps.")
-                            .font(.system(size: 12))
-                            .foregroundStyle(McCleanTheme.textSecondary)
-                    }
-                    
-                    Spacer()
-                    
-                    VStack(alignment: .trailing, spacing: 2) {
-                        Text("ORPHANED BAGGAGE")
-                            .font(.system(size: 9, weight: .bold))
-                            .tracking(0.6)
-                            .foregroundStyle(McCleanTheme.textMuted)
-                        Text(ByteCountFormatterHelper.format(bytes: totalOrphanBytes))
-                            .font(.system(size: 22, weight: .bold))
-                            .monospacedDigit()
-                            .foregroundStyle(McCleanTheme.textPrimary)
-                    }
-                }
-                .padding(20)
-                .glassCard(cornerRadius: 8)
+                headerCard(accent: accent)
                 
-                // Liquid Glass Mode Switcher Strip
+                // Liquid Glass Mode Switcher Tabs
                 LiquidGlassGroup(spacing: 8) {
                     HStack(spacing: 8) {
                         tabPill(
-                            title: "Orphaned Leftovers (\(orphanItems.count))",
+                            title: "Installed Applications (\(viewModel.installedApps.count))",
                             tag: 0
                         )
                         tabPill(
-                            title: "Complete App Uninstaller (\(viewModel.installedApps.count))",
+                            title: "Orphaned Leftovers (\(orphanItems.count))",
                             tag: 1
                         )
                         Spacer()
+                        
+                        // Fast Refresh / Index Button
+                        Button {
+                            viewModel.refreshInstalledApps()
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "arrow.clockwise")
+                                    .font(.system(size: 11, weight: .semibold))
+                                    .rotationEffect(.degrees(viewModel.isScanningApps ? 360 : 0))
+                                    .animation(
+                                        viewModel.isScanningApps
+                                            ? .linear(duration: 1).repeatForever(autoreverses: false)
+                                            : .default,
+                                        value: viewModel.isScanningApps
+                                    )
+                                Text(viewModel.isScanningApps ? "Scanning..." : "Refresh Apps")
+                                    .font(.system(size: 11, weight: .medium))
+                            }
+                            .foregroundStyle(McCleanTheme.textSecondary)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5.5)
+                            .liquidGlassRect(cornerRadius: 6, interactive: true)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(viewModel.isScanningApps || viewModel.isScanning)
                     }
                 }
                 
                 if viewModel.appLeftoversTab == 0 {
-                    orphanedListSection
+                    uninstallerModuleSection
                 } else {
-                    uninstallerListSection
+                    orphanedListSection
                 }
             }
             .padding(24)
         }
+        .onAppear {
+            viewModel.scanInstalledAppsIfNeeded()
+        }
         .sheet(item: $viewModel.appToConfirmUninstall) { app in
             uninstallConfirmationModal(for: app)
         }
+    }
+    
+    // MARK: - Header
+    
+    private func headerCard(accent: Color) -> some View {
+        HStack(alignment: .top, spacing: 16) {
+            VStack(alignment: .leading, spacing: 5) {
+                Text("APPLICATIONS & RESIDUAL STORAGE")
+                    .font(.system(size: 9.5, weight: .bold))
+                    .tracking(1.0)
+                    .foregroundStyle(accent)
+                
+                Text("Application Uninstaller & Leftovers.")
+                    .font(.system(size: 24, weight: .semibold))
+                    .tracking(-0.4)
+                    .foregroundStyle(McCleanTheme.textPrimary)
+                
+                Text("Dragging apps to Trash leaves gigabytes trapped in ~/Library/Application Support, Caches, and Containers. Completely delete active apps or clean abandoned leftover baggage.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(McCleanTheme.textSecondary)
+            }
+            
+            Spacer()
+            
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(viewModel.appLeftoversTab == 0 ? "TOTAL APPS FOOTPRINT" : "ORPHANED BAGGAGE")
+                    .font(.system(size: 9, weight: .bold))
+                    .tracking(0.6)
+                    .foregroundStyle(McCleanTheme.textMuted)
+                Text(ByteCountFormatterHelper.format(bytes: viewModel.appLeftoversTab == 0 ? totalInstalledAppsBytes : totalOrphanBytes))
+                    .font(.system(size: 22, weight: .bold))
+                    .monospacedDigit()
+                    .foregroundStyle(McCleanTheme.textPrimary)
+            }
+        }
+        .padding(20)
+        .glassCard(cornerRadius: 8)
     }
     
     private func tabPill(title: String, tag: Int) -> some View {
@@ -99,7 +138,417 @@ public struct AppLeftoversView: View {
         .buttonStyle(.plain)
     }
     
-    // MARK: - Tab 0: Orphaned Leftovers
+    // MARK: - Tab 0: Complete App Uninstaller
+    
+    private var filteredInstalledApps: [InstalledApp] {
+        var apps = viewModel.installedApps
+        
+        // Scope filter
+        switch viewModel.appScopeFilter {
+        case .all:
+            break
+        case .userOnly:
+            apps = apps.filter { !$0.isSystemApp }
+        case .withLibraryOnly:
+            apps = apps.filter { !$0.relatedItems.isEmpty }
+        }
+        
+        // Search filter
+        let q = viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        if !q.isEmpty {
+            apps = apps.filter {
+                $0.name.lowercased().contains(q) ||
+                $0.bundleIdentifier.lowercased().contains(q) ||
+                $0.bundleURL.path.lowercased().contains(q)
+            }
+        }
+        
+        // Sort
+        switch viewModel.appSortOption {
+        case .largestTotal:
+            apps.sort { $0.totalFootprintBytes > $1.totalFootprintBytes }
+        case .nameAZ:
+            apps.sort { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending }
+        case .largestLibrary:
+            apps.sort { $0.relatedSupportBytes > $1.relatedSupportBytes }
+        case .largestApp:
+            apps.sort { $0.appBundleSizeBytes > $1.appBundleSizeBytes }
+        }
+        
+        return apps
+    }
+    
+    private var uninstallerModuleSection: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            // Filter & Sort Toolbar
+            controlsToolbar
+            
+            // Batch Selection Action Card (if any apps selected)
+            if !viewModel.selectedAppIDsForUninstall.isEmpty {
+                batchSelectionBar
+            }
+            
+            // App List or Loading State
+            if viewModel.isScanningApps && viewModel.installedApps.isEmpty {
+                loadingAppsCard
+            } else if filteredInstalledApps.isEmpty {
+                emptyCard(
+                    icon: "app.dashed",
+                    title: viewModel.installedApps.isEmpty ? "No Applications Indexed Yet" : "No Matching Applications",
+                    subtitle: viewModel.installedApps.isEmpty
+                        ? "Click 'Refresh Apps' or run Smart Scan to index installed applications."
+                        : "Try adjusting your search query or scope filter."
+                )
+            } else {
+                ForEach(filteredInstalledApps) { app in
+                    installedAppCard(app)
+                }
+            }
+        }
+    }
+    
+    private var controlsToolbar: some View {
+        HStack(spacing: 10) {
+            // Scope Filter Menu / Pills
+            ForEach(AppScopeFilter.allCases) { scope in
+                let isSelected = (viewModel.appScopeFilter == scope)
+                Button {
+                    viewModel.appScopeFilter = scope
+                } label: {
+                    Text(scope.rawValue)
+                        .font(.system(size: 10.5, weight: isSelected ? .semibold : .regular))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 4.5)
+                        .background(isSelected ? McCleanTheme.textPrimary.opacity(0.08) : Color.clear, in: RoundedRectangle(cornerRadius: 6))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .strokeBorder(isSelected ? McCleanTheme.textPrimary.opacity(0.20) : McCleanTheme.subtleBorder, lineWidth: 1)
+                        )
+                        .foregroundStyle(isSelected ? McCleanTheme.textPrimary : McCleanTheme.textSecondary)
+                }
+                .buttonStyle(.plain)
+            }
+            
+            Spacer()
+            
+            // Sort Picker Menu
+            Menu {
+                ForEach(AppSortOption.allCases) { opt in
+                    Button {
+                        viewModel.appSortOption = opt
+                    } label: {
+                        HStack {
+                            Text(opt.rawValue)
+                            if viewModel.appSortOption == opt {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 4) {
+                    Image(systemName: "arrow.up.arrow.down")
+                        .font(.system(size: 10))
+                    Text(viewModel.appSortOption.rawValue)
+                        .font(.system(size: 10.5, weight: .medium))
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(McCleanTheme.cardBackground, in: RoundedRectangle(cornerRadius: 6))
+                .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(McCleanTheme.subtleBorder, lineWidth: 1))
+                .foregroundStyle(McCleanTheme.textSecondary)
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            
+            // Select All User Apps Toggle
+            Button {
+                if viewModel.selectedAppIDsForUninstall.isEmpty {
+                    viewModel.selectAllUserAppsForUninstall()
+                } else {
+                    viewModel.deselectAllAppsForUninstall()
+                }
+            } label: {
+                Text(viewModel.selectedAppIDsForUninstall.isEmpty ? "Select All" : "Deselect All")
+                    .font(.system(size: 10.5, weight: .medium))
+                    .foregroundStyle(McCleanTheme.accentAmber)
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 5)
+                    .background(McCleanTheme.accentAmber.opacity(0.10), in: RoundedRectangle(cornerRadius: 6))
+            }
+            .buttonStyle(.plain)
+        }
+    }
+    
+    private var batchSelectionBar: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "trash.circle.fill")
+                .font(.system(size: 18))
+                .foregroundStyle(McCleanTheme.accentCoral)
+            
+            VStack(alignment: .leading, spacing: 1) {
+                Text("\(viewModel.selectedAppsForUninstall.count) Applications Selected for Complete Removal")
+                    .font(.system(size: 12.5, weight: .semibold))
+                    .foregroundStyle(McCleanTheme.textPrimary)
+                Text("Total storage to reclaim: \(ByteCountFormatterHelper.format(bytes: viewModel.selectedAppsTotalBytes)) (.app binaries + associated ~/Library baggage)")
+                    .font(.system(size: 10.5))
+                    .foregroundStyle(McCleanTheme.textSecondary)
+            }
+            
+            Spacer()
+            
+            Button {
+                viewModel.deselectAllAppsForUninstall()
+            } label: {
+                Text("Cancel")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(McCleanTheme.textSecondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .liquidGlassRect(cornerRadius: 6, interactive: true)
+            }
+            .buttonStyle(.plain)
+            
+            Button {
+                let targets = viewModel.selectedAppsForUninstall
+                viewModel.uninstallBatchAppsImmediately(targets)
+            } label: {
+                HStack(spacing: 5) {
+                    Image(systemName: "trash")
+                        .font(.system(size: 10.5, weight: .bold))
+                    Text("Uninstall Selected (\(ByteCountFormatterHelper.format(bytes: viewModel.selectedAppsTotalBytes)))")
+                        .font(.system(size: 11.5, weight: .semibold))
+                }
+                .foregroundStyle(McCleanTheme.inkDark)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6.5)
+                .background(
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(McCleanTheme.accentCoral)
+                )
+            }
+            .buttonStyle(.plain)
+        }
+        .padding(12)
+        .background(McCleanTheme.elevatedCardBackground, in: RoundedRectangle(cornerRadius: 8))
+        .overlay(
+            RoundedRectangle(cornerRadius: 8)
+                .strokeBorder(McCleanTheme.accentCoral.opacity(0.35), lineWidth: 1)
+        )
+    }
+    
+    private func installedAppCard(_ app: InstalledApp) -> some View {
+        let isExpanded = viewModel.expandedAppIDs.contains(app.id)
+        let isChecked = viewModel.selectedAppIDsForUninstall.contains(app.id)
+        
+        return VStack(alignment: .leading, spacing: 0) {
+            HStack(spacing: 12) {
+                // Batch Checkbox (Disabled for macOS System apps)
+                if !app.isSystemApp {
+                    GlassCheckbox(isChecked: isChecked) {
+                        viewModel.toggleAppSelection(for: app.id)
+                    }
+                } else {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 11))
+                        .foregroundStyle(McCleanTheme.textMuted)
+                        .frame(width: 18, height: 18)
+                        .help("macOS System Application — Protected by System Integrity Protection (SIP)")
+                }
+                
+                // App Retina Icon
+                Image(nsImage: AppIconCache.icon(for: app.bundleURL))
+                    .resizable()
+                    .frame(width: 38, height: 38)
+                
+                // Name & Metadata
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Text(app.name)
+                            .font(.system(size: 13.5, weight: .semibold))
+                            .foregroundStyle(McCleanTheme.textPrimary)
+                        
+                        Text("v\(app.version)")
+                            .font(.system(size: 9.5, weight: .medium))
+                            .monospacedDigit()
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color.black.opacity(0.04), in: RoundedRectangle(cornerRadius: 3))
+                            .foregroundStyle(McCleanTheme.textMuted)
+                        
+                        Text(app.installLocationLabel)
+                            .font(.system(size: 9, weight: .semibold))
+                            .padding(.horizontal, 5)
+                            .padding(.vertical, 1)
+                            .background(Color.black.opacity(0.03), in: RoundedRectangle(cornerRadius: 3))
+                            .foregroundStyle(McCleanTheme.textMuted)
+                        
+                        if app.isSystemApp {
+                            Text("SYSTEM PROTECTED")
+                                .font(.system(size: 8, weight: .bold))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1)
+                                .background(McCleanTheme.accentCyan.opacity(0.12), in: Capsule())
+                                .foregroundStyle(McCleanTheme.accentCyan)
+                        }
+                    }
+                    
+                    Text(app.bundleIdentifier)
+                        .font(.system(size: 10))
+                        .foregroundStyle(McCleanTheme.textMuted)
+                        .lineLimit(1)
+                    
+                    HStack(spacing: 8) {
+                        Text("Bundle: \(app.formattedAppSize)")
+                            .font(.system(size: 10.5))
+                            .monospacedDigit()
+                            .foregroundStyle(McCleanTheme.textSecondary)
+                        
+                        if !app.relatedItems.isEmpty {
+                            Text("•")
+                                .foregroundStyle(McCleanTheme.textMuted)
+                            Text("Library: \(app.formattedSupportSize) (\(app.relatedItems.count) folders)")
+                                .font(.system(size: 10.5, weight: .medium))
+                                .monospacedDigit()
+                                .foregroundStyle(McCleanTheme.accentAmber)
+                        }
+                    }
+                }
+                
+                Spacer()
+                
+                // Total Footprint Size
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text(app.formattedTotalSize)
+                        .font(.system(size: 14.5, weight: .bold))
+                        .monospacedDigit()
+                        .foregroundStyle(McCleanTheme.textPrimary)
+                    
+                    if !app.relatedItems.isEmpty {
+                        Button {
+                            if isExpanded {
+                                viewModel.expandedAppIDs.remove(app.id)
+                            } else {
+                                viewModel.expandedAppIDs.insert(app.id)
+                            }
+                        } label: {
+                            HStack(spacing: 3) {
+                                Text(isExpanded ? "Hide Folders" : "Inspect Folders")
+                                Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            }
+                            .font(.system(size: 9.5, weight: .medium))
+                            .foregroundStyle(McCleanTheme.accentAmber)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                
+                // Reveal in Finder Button
+                Button {
+                    NSWorkspace.shared.selectFile(app.bundleURL.path, inFileViewerRootedAtPath: "")
+                } label: {
+                    Image(systemName: "folder")
+                        .font(.system(size: 11))
+                        .foregroundStyle(McCleanTheme.textSecondary)
+                        .frame(width: 26, height: 26)
+                        .liquidGlassRect(cornerRadius: 6, interactive: true)
+                }
+                .buttonStyle(.plain)
+                .help("Reveal \(app.name).app in Finder")
+                
+                // Uninstall Button
+                if !app.isSystemApp {
+                    Button {
+                        viewModel.appToConfirmUninstall = app
+                    } label: {
+                        Text("Uninstall")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundStyle(McCleanTheme.accentCoral)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .liquidGlassRect(cornerRadius: 6, tint: McCleanTheme.accentCoral.opacity(0.18), interactive: true)
+                    }
+                    .buttonStyle(.plain)
+                    .help("Completely uninstall \(app.name) and all associated ~/Library folders")
+                } else {
+                    Text("Protected")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(McCleanTheme.textMuted)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.black.opacity(0.04), in: RoundedRectangle(cornerRadius: 6))
+                }
+            }
+            .padding(14)
+            
+            // Expanded Associated ~/Library Folders
+            if isExpanded && !app.relatedItems.isEmpty {
+                Rectangle()
+                    .fill(McCleanTheme.subtleBorder)
+                    .frame(height: 1)
+                
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("ASSOCIATED SUPPORT DIRECTORIES (\(app.relatedItems.count))")
+                        .font(.system(size: 8.5, weight: .bold))
+                        .tracking(0.8)
+                        .foregroundStyle(McCleanTheme.textMuted)
+                        .padding(.bottom, 2)
+                    
+                    ForEach(app.relatedItems) { item in
+                        HStack(spacing: 8) {
+                            Image(systemName: "folder.fill")
+                                .font(.system(size: 10))
+                                .foregroundStyle(McCleanTheme.accentAmber)
+                            
+                            Text(item.displayPath)
+                                .font(.system(size: 10.5))
+                                .foregroundStyle(McCleanTheme.textSecondary)
+                                .lineLimit(1)
+                            
+                            Spacer()
+                            
+                            Text(item.formattedSize)
+                                .font(.system(size: 10, weight: .semibold))
+                                .monospacedDigit()
+                                .foregroundStyle(McCleanTheme.textPrimary)
+                            
+                            Button {
+                                NSWorkspace.shared.selectFile(item.url.path, inFileViewerRootedAtPath: "")
+                            } label: {
+                                Image(systemName: "arrow.up.right.square")
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(McCleanTheme.textMuted)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Show folder in Finder")
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4.5)
+                        .background(Color.black.opacity(0.02), in: RoundedRectangle(cornerRadius: 4))
+                    }
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(McCleanTheme.elevatedCardBackground.opacity(0.6))
+            }
+        }
+        .glassCard(cornerRadius: 8)
+    }
+    
+    private var loadingAppsCard: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .scaleEffect(0.8)
+            Text("Indexing installed applications in /Applications & cross-referencing ~/Library...")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(McCleanTheme.textSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 44)
+        .glassCard(cornerRadius: 8)
+    }
+    
+    // MARK: - Tab 1: Orphaned Leftovers
     
     private var orphanedListSection: some View {
         Group {
@@ -119,107 +568,6 @@ public struct AppLeftoversView: View {
         }
     }
     
-    // MARK: - Tab 1: Full App Uninstaller
-    
-    private var filteredInstalledApps: [InstalledApp] {
-        let q = viewModel.searchQuery.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
-        guard !q.isEmpty else { return viewModel.installedApps }
-        return viewModel.installedApps.filter {
-            $0.name.lowercased().contains(q) || $0.bundleIdentifier.lowercased().contains(q)
-        }
-    }
-    
-    private var uninstallerListSection: some View {
-        Group {
-            if filteredInstalledApps.isEmpty {
-                emptyCard(
-                    icon: "app.dashed",
-                    title: viewModel.hasCompletedScan ? "No Matching Applications" : "Run Smart Scan First",
-                    subtitle: "Run Smart Scan to index all installed applications and their associated ~/Library data."
-                )
-            } else {
-                ForEach(filteredInstalledApps) { app in
-                    installedAppRow(app)
-                }
-            }
-        }
-    }
-    
-    private func installedAppRow(_ app: InstalledApp) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            HStack(spacing: 14) {
-                Image(nsImage: AppIconCache.icon(for: app.bundleURL))
-                    .resizable()
-                    .frame(width: 36, height: 36)
-                
-                VStack(alignment: .leading, spacing: 3) {
-                    HStack(spacing: 8) {
-                        Text(app.name)
-                            .font(.system(size: 13.5, weight: .semibold))
-                            .foregroundStyle(McCleanTheme.textPrimary)
-                        Text("v\(app.version)")
-                            .font(.system(size: 9.5, weight: .medium)).monospacedDigit()
-                            .padding(.horizontal, 5)
-                            .padding(.vertical, 1.5)
-                            .background(Color.black.opacity(0.05), in: RoundedRectangle(cornerRadius: 4))
-                            .foregroundStyle(McCleanTheme.textMuted)
-                    }
-                    
-                    Text(app.bundleIdentifier)
-                        .font(.system(size: 10.5))
-                        .foregroundStyle(McCleanTheme.textMuted)
-                    
-                    HStack(spacing: 10) {
-                        Text("Bundle: \(app.formattedAppSize)")
-                            .font(.system(size: 10.5)).monospacedDigit()
-                            .foregroundStyle(McCleanTheme.textSecondary)
-                        Text("•")
-                            .foregroundStyle(McCleanTheme.textMuted)
-                        Text("Library: \(app.formattedSupportSize) (\(app.relatedItems.count) folders)")
-                            .font(.system(size: 10.5, weight: .medium)).monospacedDigit()
-                            .foregroundStyle(McCleanTheme.accentAmber)
-                    }
-                }
-                
-                Spacer()
-                
-                Text(app.formattedTotalSize)
-                    .font(.system(size: 14.5, weight: .bold))
-                    .monospacedDigit()
-                    .foregroundStyle(McCleanTheme.textPrimary)
-                
-                Button {
-                    viewModel.appToConfirmUninstall = app
-                } label: {
-                    Text("Uninstall")
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundStyle(McCleanTheme.accentCoral)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .liquidGlassRect(cornerRadius: 6, tint: McCleanTheme.accentCoral.opacity(0.20), interactive: true)
-                }
-                .buttonStyle(.plain)
-            }
-            
-            if !app.relatedItems.isEmpty {
-                HStack(spacing: 6) {
-                    ForEach(app.relatedItems.prefix(4)) { rel in
-                        Text("\(rel.name) (\(rel.formattedSize))")
-                            .font(.system(size: 9.5)).monospacedDigit()
-                            .padding(.horizontal, 7)
-                            .padding(.vertical, 3)
-                            .background(Color.black.opacity(0.03), in: RoundedRectangle(cornerRadius: 4))
-                            .foregroundStyle(McCleanTheme.textMuted)
-                            .lineLimit(1)
-                    }
-                }
-                .padding(.leading, 50)
-            }
-        }
-        .padding(14)
-        .glassCard(cornerRadius: 8)
-    }
-    
     private func emptyCard(icon: String, title: String, subtitle: String) -> some View {
         VStack(spacing: 10) {
             Image(systemName: icon)
@@ -236,6 +584,8 @@ public struct AppLeftoversView: View {
         .padding(.vertical, 52)
         .glassCard(cornerRadius: 8)
     }
+    
+    // MARK: - Uninstall Confirmation Modal
     
     private func uninstallConfirmationModal(for app: InstalledApp) -> some View {
         VStack(alignment: .leading, spacing: 18) {
@@ -305,7 +655,7 @@ public struct AppLeftoversView: View {
                         .padding(.vertical, 8.5)
                         .background(
                             RoundedRectangle(cornerRadius: 6, style: .continuous)
-                                .fill(McCleanTheme.textPrimary)
+                                .fill(McCleanTheme.accentCoral)
                         )
                 }
                 .buttonStyle(.plain)

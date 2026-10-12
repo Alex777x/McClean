@@ -19,6 +19,25 @@ public enum AppIconCache {
     }
 }
 
+/// Sorting choices for the App Uninstaller module.
+public enum AppSortOption: String, CaseIterable, Identifiable, Sendable {
+    case largestTotal = "Largest Footprint"
+    case nameAZ = "Name (A–Z)"
+    case largestLibrary = "Most ~/Library Baggage"
+    case largestApp = "Largest .app Bundle"
+    
+    public var id: String { rawValue }
+}
+
+/// Scope filter choices for the App Uninstaller module.
+public enum AppScopeFilter: String, CaseIterable, Identifiable, Sendable {
+    case all = "All Apps"
+    case userOnly = "User Apps"
+    case withLibraryOnly = "With ~/Library Data"
+    
+    public var id: String { rawValue }
+}
+
 @MainActor
 public final class AppViewModel: ObservableObject {
     @Published public var selectedSection: NavigationSection = .smartScan
@@ -58,10 +77,16 @@ public final class AppViewModel: ObservableObject {
         .developerAndAICaches
     ]
     @Published public var expandedItemIDs: Set<UUID> = []
+    @Published public var expandedAppIDs: Set<UUID> = []
     @Published public var appLeftoversTab: Int = 0 {
         didSet { syncActiveSectionSelections() }
     }
+    @Published public var isScanningApps: Bool = false
+    @Published public var appSortOption: AppSortOption = .largestTotal
+    @Published public var appScopeFilter: AppScopeFilter = .all
+    @Published public var selectedAppIDsForUninstall: Set<UUID> = []
     @Published public var appToConfirmUninstall: InstalledApp? = nil
+    @Published public var appsToConfirmBatchUninstall: [InstalledApp]? = nil
     @Published public var systemJunkFilter: JunkCategory? = nil {
         didSet { syncActiveSectionSelections() }
     }
@@ -117,6 +142,9 @@ public final class AppViewModel: ObservableObject {
         guard selectedSection != section else { return }
         selectedSection = section
         syncActiveSectionSelections()
+        if section == .appLeftovers {
+            scanInstalledAppsIfNeeded()
+        }
     }
     
     public var aiMode: AIProviderMode {
@@ -134,7 +162,7 @@ public final class AppViewModel: ObservableObject {
         case .dotfiles:
             return dotfileItems
         case .appLeftovers:
-            return appLeftoversTab == 0 ? orphanedAppItems : []
+            return appLeftoversTab == 1 ? orphanedAppItems : []
         case .systemAndDev:
             let base = systemAndDevItems
             if let cat = systemJunkFilter {
@@ -525,6 +553,103 @@ public final class AppViewModel: ObservableObject {
             if !FileManager.default.fileExists(atPath: app.bundleURL.path) {
                 self.installedApps.removeAll { $0.id == app.id }
             }
+            self.diskUsage = DiskVolumeUsage.current()
+            self.lifetimeBytesFreed += report.totalBytesFreed
+            self.latestCleanupReport = report
+            self.isCleaning = false
+            self.isShowingCleanupReportSheet = true
+        }
+    }
+    
+    // MARK: - App Uninstaller Operations
+    
+    public func scanInstalledAppsIfNeeded() {
+        guard installedApps.isEmpty, !isScanning, !isScanningApps else { return }
+        refreshInstalledApps()
+    }
+    
+    public func refreshInstalledApps() {
+        guard !isScanning, !isScanningApps else { return }
+        isScanningApps = true
+        Task {
+            let result = await Task.detached(priority: .userInitiated) {
+                OrphanedAppsScanner.scan()
+            }.value
+            
+            self.installedApps = result.installedApps
+            let whitelistSet = Set(self.customWhitelist)
+            let existingPaths = Set(self.allScanItems.map(\.displayPath))
+            let newOrphans = result.orphanedItems.filter { !existingPaths.contains($0.displayPath) }
+            if !newOrphans.isEmpty {
+                self.allScanItems = Self.deduplicateAndSort(self.allScanItems + newOrphans, whitelistSet: whitelistSet)
+            }
+            self.syncActiveSectionSelections()
+            self.isScanningApps = false
+        }
+    }
+    
+    public func toggleAppSelection(for appID: UUID) {
+        guard let app = installedApps.first(where: { $0.id == appID }), !app.isSystemApp else { return }
+        if selectedAppIDsForUninstall.contains(appID) {
+            selectedAppIDsForUninstall.remove(appID)
+        } else {
+            selectedAppIDsForUninstall.insert(appID)
+        }
+    }
+    
+    public func selectAllUserAppsForUninstall() {
+        let userAppIDs = installedApps.filter { !$0.isSystemApp }.map(\.id)
+        selectedAppIDsForUninstall = Set(userAppIDs)
+    }
+    
+    public func deselectAllAppsForUninstall() {
+        selectedAppIDsForUninstall.removeAll()
+    }
+    
+    public var selectedAppsForUninstall: [InstalledApp] {
+        installedApps.filter { selectedAppIDsForUninstall.contains($0.id) }
+    }
+    
+    public var selectedAppsTotalBytes: Int64 {
+        selectedAppsForUninstall.reduce(0) { $0 + $1.totalFootprintBytes }
+    }
+    
+    public func uninstallBatchAppsImmediately(_ apps: [InstalledApp]) {
+        guard !apps.isEmpty else { return }
+        var targets: [ScanItem] = []
+        for app in apps {
+            guard !app.isSystemApp else { continue }
+            targets.append(
+                ScanItem(
+                    url: app.bundleURL,
+                    name: "\(app.name).app",
+                    sizeBytes: app.appBundleSizeBytes,
+                    category: .orphanedLeftovers,
+                    safetyLevel: .review,
+                    explanation: "Application bundle for \(app.name)",
+                    associatedAppName: app.name,
+                    isOrphaned: false,
+                    isDirectory: true,
+                    isSelected: true
+                )
+            )
+            targets.append(contentsOf: app.relatedItems)
+        }
+        
+        isCleaning = true
+        cleaningItemName = apps.first?.name ?? "Uninstalling applications..."
+        let appIDsToRemove = Set(apps.map(\.id))
+        
+        Task {
+            let report = await Task.detached(priority: .userInitiated) {
+                CleanupService.cleanImmediately(
+                    items: targets,
+                    allowProtectedOverride: true
+                )
+            }.value
+            
+            self.installedApps.removeAll { appIDsToRemove.contains($0.id) }
+            self.selectedAppIDsForUninstall.subtract(appIDsToRemove)
             self.diskUsage = DiskVolumeUsage.current()
             self.lifetimeBytesFreed += report.totalBytesFreed
             self.latestCleanupReport = report

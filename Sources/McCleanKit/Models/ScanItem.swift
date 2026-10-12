@@ -43,7 +43,7 @@ public enum SafetyLevel: String, Codable, CaseIterable, Equatable, Sendable {
 public enum NavigationSection: String, CaseIterable, Identifiable, Equatable, Sendable {
     case smartScan = "Smart Scan"
     case dotfiles = "Dotfiles (~/.*)"
-    case appLeftovers = "App Leftovers"
+    case appLeftovers = "App Uninstaller"
     case systemAndDev = "Wallpapers & Junk"
     case largeFiles = "Large Files & Lens"
     
@@ -56,7 +56,7 @@ public enum NavigationSection: String, CaseIterable, Identifiable, Equatable, Se
         case .dotfiles:
             return "Hidden Unix dot-directories in your Home folder (~/.*, ~/.config)"
         case .appLeftovers:
-            return "Orphaned remnants of uninstalled apps & complete app uninstaller"
+            return "Complete app removal (.app + ~/Library) & orphaned leftovers"
         case .systemAndDev:
             return "4K/8K macOS Aerial wallpapers, app caches, logs & developer tools"
         case .largeFiles:
@@ -68,7 +68,7 @@ public enum NavigationSection: String, CaseIterable, Identifiable, Equatable, Se
         switch self {
         case .smartScan: return "sparkles"
         case .dotfiles: return "eye.trianglebadge.exclamationmark"
-        case .appLeftovers: return "puzzlepiece.extension.fill"
+        case .appLeftovers: return "trash.square.fill"
         case .systemAndDev: return "sparkles.tv.fill"
         case .largeFiles: return "externaldrive.fill.badge.timemachine"
         }

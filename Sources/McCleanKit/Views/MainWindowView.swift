@@ -230,7 +230,7 @@ public struct MainWindowView: View {
         switch section {
         case .smartScan: return "All categories"
         case .dotfiles: return "~/.* & .config"
-        case .appLeftovers: return "Orphans & apps"
+        case .appLeftovers: return "Apps & leftovers"
         case .systemAndDev: return "Aerials & caches"
         case .largeFiles: return "50MB+ & lens"
         }
