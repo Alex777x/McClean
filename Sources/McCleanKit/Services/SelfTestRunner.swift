@@ -32,7 +32,10 @@ public enum SelfTestRunner {
             try testTCCGuardAndPartialPermissions()
             print("  [PASS] TCCGuard & Partial Permissions (Photos Library, Containers, and com.apple.* TCC folders skipped safely)")
             
-            print("All 5 test suites passed successfully!")
+            try testAppUninstallerSafetyAndIsolation()
+            print("  [PASS] App Uninstaller (umbrella vendor isolation, McClean exclusion, protected path safety)")
+            
+            print("All 6 test suites passed successfully!")
             return true
         } catch {
             print("  [FAIL] Test failed with error: \(error)")
@@ -265,5 +268,105 @@ public enum SelfTestRunner {
         
         let picturesMetrics = DiskSizeCalculator.calculateMetrics(at: mockHome.appendingPathComponent("Pictures"))
         try assertCondition(picturesMetrics.sizeBytes == 0, "Pictures directory size must ignore Photos Library.photoslibrary")
+    }
+    
+    private static func testAppUninstallerSafetyAndIsolation() throws {
+        let tempRoot = try makeTempDir()
+        defer { try? FileManager.default.removeItem(at: tempRoot) }
+        
+        let mockAppsDir = tempRoot.appendingPathComponent("Applications", isDirectory: true)
+        let mockLibraryDir = tempRoot.appendingPathComponent("Library", isDirectory: true)
+        
+        // 1. Setup mock Chrome app (com.google.Chrome)
+        let chromePlistURL = mockAppsDir.appendingPathComponent("Google Chrome.app/Contents/Info.plist")
+        try FileManager.default.createDirectory(at: chromePlistURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let chromePlist: NSDictionary = [
+            "CFBundleName": "Google Chrome",
+            "CFBundleIdentifier": "com.google.Chrome",
+            "CFBundleShortVersionString": "124.0.0"
+        ]
+        chromePlist.write(to: chromePlistURL, atomically: true)
+        try writeDummyFile(at: mockAppsDir.appendingPathComponent("Google Chrome.app/Contents/MacOS/Google Chrome"), sizeBytes: 500 * 1024)
+        
+        // 2. Setup mock McClean app bundle (com.mcclean.app) inside mock applications
+        let mccleanPlistURL = mockAppsDir.appendingPathComponent("McClean.app/Contents/Info.plist")
+        try FileManager.default.createDirectory(at: mccleanPlistURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let mccleanPlist: NSDictionary = [
+            "CFBundleName": "McClean",
+            "CFBundleIdentifier": "com.mcclean.app",
+            "CFBundleShortVersionString": "1.0.0"
+        ]
+        mccleanPlist.write(to: mccleanPlistURL, atomically: true)
+        try writeDummyFile(at: mockAppsDir.appendingPathComponent("McClean.app/Contents/MacOS/McClean"), sizeBytes: 300 * 1024)
+        
+        // 3. Setup umbrella folder: ~/Library/Application Support/Google with Chrome subfolder and Drive subfolder
+        try writeDummyFile(at: mockLibraryDir.appendingPathComponent("Application Support/Google/Chrome/User Data/Default/History"), sizeBytes: 250 * 1024)
+        try writeDummyFile(at: mockLibraryDir.appendingPathComponent("Application Support/Google/DriveFS/root_metadata.db"), sizeBytes: 400 * 1024)
+        
+        // 4. Run scanner
+        let scanResult = OrphanedAppsScanner.scan(
+            applicationDirectories: [mockAppsDir],
+            userLibraryURL: mockLibraryDir,
+            minimumOrphanSizeBytes: 64 * 1024
+        )
+        
+        // (a) McClean itself must be excluded from installedApps
+        try assertCondition(
+            !scanResult.installedApps.contains { $0.isSelfApp || $0.name == "McClean" },
+            "McClean bundle must be excluded from discovered installed applications"
+        )
+        
+        // (b) Google Chrome should be discovered
+        guard let chromeApp = scanResult.installedApps.first(where: { $0.bundleIdentifier == "com.google.Chrome" }) else {
+            throw NSError(domain: "McCleanSelfTest", code: 10, userInfo: [NSLocalizedDescriptionKey: "Google Chrome app not found in scan results"])
+        }
+        
+        // (c) Chrome's related items must contain Google/Chrome, but NEVER the umbrella root 'Google' or 'Google/DriveFS'
+        let relatedDisplayPaths = chromeApp.relatedItems.map(\.name)
+        try assertCondition(
+            relatedDisplayPaths.contains { $0.contains("Google/Chrome") },
+            "Chrome should have its specific Google/Chrome subfolder attached"
+        )
+        try assertCondition(
+            !relatedDisplayPaths.contains { $0 == "Application Support: Google" },
+            "Umbrella vendor root folder 'Google' must NOT be attached to a single app"
+        )
+        try assertCondition(
+            !relatedDisplayPaths.contains { $0.contains("Google/DriveFS") },
+            "Other app's subfolder (DriveFS) must NOT be attached to Chrome"
+        )
+        
+        // (d) Test CleanupService with allowProtectedOverride: false preserves protected paths
+        let protectedSystemItem = ScanItem(
+            url: URL(fileURLWithPath: "/System/Applications/Calculator.app"),
+            name: "Calculator.app",
+            sizeBytes: 1024,
+            category: .orphanedLeftovers,
+            safetyLevel: .protected,
+            explanation: "Protected system bundle"
+        )
+        let cleanupReport = CleanupService.cleanImmediately(
+            items: [protectedSystemItem],
+            allowProtectedOverride: false
+        )
+        try assertCondition(cleanupReport.deletedRecords.isEmpty, "Protected items must not be deleted when allowProtectedOverride is false")
+        try assertCondition(cleanupReport.failedItems.count == 1, "Protected item must be recorded in failedItems")
+        
+        // (e) Verify isSystemApp and isRunning properties
+        let safariApp = InstalledApp(
+            bundleURL: URL(fileURLWithPath: "/Applications/Safari.app"),
+            name: "Safari",
+            bundleIdentifier: "com.apple.Safari",
+            appBundleSizeBytes: 100_000
+        )
+        try assertCondition(safariApp.isSystemApp, "Safari.app must be identified as isSystemApp")
+        
+        let selfApp = InstalledApp(
+            bundleURL: URL(fileURLWithPath: "/Applications/McClean.app"),
+            name: "McClean",
+            bundleIdentifier: "com.mcclean.app",
+            appBundleSizeBytes: 100_000
+        )
+        try assertCondition(selfApp.isSelfApp, "McClean must be identified as isSelfApp")
     }
 }

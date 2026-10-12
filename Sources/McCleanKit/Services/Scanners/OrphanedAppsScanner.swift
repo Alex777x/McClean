@@ -70,9 +70,16 @@ public enum OrphanedAppsScanner {
     ]
     
     /// Generic vendor tokens that shouldn't by themselves link unrelated apps together.
-    private static let genericTokens: Set<String> = [
+    public static let genericTokens: Set<String> = [
         "com", "org", "net", "io", "app", "mac", "macos", "desktop", "client",
         "helper", "agent", "daemon", "service", "inc", "ltd", "dev", "pro", "studio"
+    ]
+    
+    /// Multi-product vendors whose top-level ~/Library folders must NEVER be attached to a single app for deletion.
+    public static let umbrellaVendors: Set<String> = [
+        "google", "microsoft", "adobe", "jetbrains", "mozilla",
+        "apple", "epic", "valve", "steam", "amazon", "oracle",
+        "meta", "facebook", "dropbox", "atlassian", "unity"
     ]
     
     public static func scan(
@@ -107,6 +114,7 @@ public enum OrphanedAppsScanner {
                 if Task.isCancelled { break }
                 if url.pathExtension.lowercased() == "app" {
                     if let app = inspectAppBundle(at: url, calculateBundleSize: dir.path != "/System/Applications") {
+                        if app.isSelfApp { continue }
                         discoveredApps.append(app)
                         installedBundleIDs.insert(app.bundleIdentifier.lowercased())
                         for token in extractTokens(appName: app.name, bundleID: app.bundleIdentifier) {
@@ -171,10 +179,95 @@ public enum OrphanedAppsScanner {
                     continue
                 }
                 
-                let matchedApp = findMatchingInstalledApp(
+                let folderNorm = normalizeToken(folderName)
+                
+                // If it is an umbrella vendor directory (e.g. ~/Library/Application Support/Google),
+                // inspect its subdirectories so Chrome matches Google Chrome, while Google itself is never attached.
+                if umbrellaVendors.contains(folderNorm) && values.isDirectory == true {
+                    if let subEntries = try? fm.contentsOfDirectory(
+                        at: entryURL,
+                        includingPropertiesForKeys: [.isDirectoryKey, .isSymbolicLinkKey, .contentModificationDateKey],
+                        options: [.skipsHiddenFiles]
+                    ) {
+                        for subURL in subEntries {
+                            if Task.isCancelled { break }
+                            let subName = subURL.lastPathComponent
+                            let subNorm = normalizeToken(subName)
+                            if shouldSkipSystemFolder(subName) || umbrellaVendors.contains(subNorm) { continue }
+                            
+                            let matchedSubApp = findStrongMatchApp(forFolderName: subName, indexedApps: indexedApps)
+                                ?? findStrongMatchApp(forFolderName: "\(folderName) \(subName)", indexedApps: indexedApps)
+                            
+                            if let app = matchedSubApp {
+                                let subMetrics = DiskSizeCalculator.calculateMetrics(at: subURL, maxFiles: 1_500)
+                                if subMetrics.sizeBytes > 0 {
+                                    let item = ScanItem(
+                                        url: subURL,
+                                        name: "\(target.label): \(folderName)/\(subName)",
+                                        sizeBytes: subMetrics.sizeBytes,
+                                        category: .orphanedLeftovers,
+                                        safetyLevel: .review,
+                                        explanation: "\(target.label) data belonging to installed app \(app.name).",
+                                        associatedAppName: app.name,
+                                        isOrphaned: false,
+                                        isDirectory: true,
+                                        lastModified: subMetrics.lastModified,
+                                        fileCount: subMetrics.fileCount,
+                                        isSelected: true
+                                    )
+                                    appRelatedMap[app.id, default: []].append(item)
+                                }
+                            } else {
+                                let isSubAssociated = isFolderAssociatedWithAnyApp(
+                                    folderName: subName,
+                                    indexedApps: indexedApps,
+                                    installedTokens: installedTokens
+                                ) || isFolderAssociatedWithAnyApp(
+                                    folderName: "\(folderName) \(subName)",
+                                    indexedApps: indexedApps,
+                                    installedTokens: installedTokens
+                                )
+                                
+                                if !isSubAssociated {
+                                    let subMetrics = DiskSizeCalculator.calculateMetrics(
+                                        at: subURL,
+                                        maxFiles: 3_500,
+                                        includeChildrenForCategory: .orphanedLeftovers,
+                                        parentSafety: .review,
+                                        maxChildren: 8
+                                    )
+                                    if subMetrics.sizeBytes >= minimumOrphanSizeBytes {
+                                        let inferredAppName = "\(folderName) \(humanizeFolderName(subName))"
+                                        orphanedItems.append(
+                                            ScanItem(
+                                                url: subURL,
+                                                name: "\(folderName)/\(subName)",
+                                                sizeBytes: subMetrics.sizeBytes,
+                                                category: .orphanedLeftovers,
+                                                safetyLevel: .review,
+                                                explanation: "Leftover \(target.label) folder in ~/Library/\(target.subpath)/\(folderName). No matching application ('\(inferredAppName)') is currently installed.",
+                                                associatedAppName: inferredAppName,
+                                                isOrphaned: true,
+                                                isDirectory: true,
+                                                lastModified: subMetrics.lastModified,
+                                                fileCount: subMetrics.fileCount,
+                                                isSelected: false,
+                                                children: subMetrics.children
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // The umbrella root folder itself is never attached as an app's related items
+                    continue
+                }
+                
+                // Normal top-level folder:
+                let matchedApp = findStrongMatchApp(
                     forFolderName: folderName,
-                    indexedApps: indexedApps,
-                    installedTokens: installedTokens
+                    indexedApps: indexedApps
                 )
                 
                 if let app = matchedApp {
@@ -197,50 +290,61 @@ public enum OrphanedAppsScanner {
                         appRelatedMap[app.id, default: []].append(item)
                     }
                 } else {
-                    let metrics = DiskSizeCalculator.calculateMetrics(
-                        at: entryURL,
-                        maxFiles: 3_500,
-                        includeChildrenForCategory: (values.isDirectory == true) ? .orphanedLeftovers : nil,
-                        parentSafety: .review,
-                        maxChildren: 8
+                    let isAssociated = isFolderAssociatedWithAnyApp(
+                        folderName: folderName,
+                        indexedApps: indexedApps,
+                        installedTokens: installedTokens
                     )
-                    guard metrics.sizeBytes >= minimumOrphanSizeBytes else { continue }
-                    let inferredAppName = humanizeFolderName(folderName)
                     
-                    orphanedItems.append(
-                        ScanItem(
-                            url: entryURL,
-                            name: folderName,
-                            sizeBytes: metrics.sizeBytes,
-                            category: .orphanedLeftovers,
-                            safetyLevel: .review,
-                            explanation: "Leftover \(target.label) folder in ~/Library/\(target.subpath). No matching application ('\(inferredAppName)') is currently installed in /Applications.",
-                            associatedAppName: inferredAppName,
-                            isOrphaned: true,
-                            isDirectory: values.isDirectory == true,
-                            lastModified: metrics.lastModified,
-                            fileCount: metrics.fileCount,
-                            isSelected: false,
-                            children: metrics.children
+                    if !isAssociated {
+                        let metrics = DiskSizeCalculator.calculateMetrics(
+                            at: entryURL,
+                            maxFiles: 3_500,
+                            includeChildrenForCategory: (values.isDirectory == true) ? .orphanedLeftovers : nil,
+                            parentSafety: .review,
+                            maxChildren: 8
                         )
-                    )
+                        guard metrics.sizeBytes >= minimumOrphanSizeBytes else { continue }
+                        let inferredAppName = humanizeFolderName(folderName)
+                        
+                        orphanedItems.append(
+                            ScanItem(
+                                url: entryURL,
+                                name: folderName,
+                                sizeBytes: metrics.sizeBytes,
+                                category: .orphanedLeftovers,
+                                safetyLevel: .review,
+                                explanation: "Leftover \(target.label) folder in ~/Library/\(target.subpath). No matching application ('\(inferredAppName)') is currently installed in /Applications.",
+                                associatedAppName: inferredAppName,
+                                isOrphaned: true,
+                                isDirectory: values.isDirectory == true,
+                                lastModified: metrics.lastModified,
+                                fileCount: metrics.fileCount,
+                                isSelected: false,
+                                children: metrics.children
+                            )
+                        )
+                    }
                 }
             }
         }
         
         // Populate related items into discovered non-system apps
-        let userApps: [InstalledApp] = discoveredApps
-            .filter { !$0.bundleURL.path.hasPrefix("/System/") }
+        let finalApps: [InstalledApp] = discoveredApps
             .map { app in
                 var copy = app
-                copy.relatedItems = (appRelatedMap[app.id] ?? []).sorted { $0.sizeBytes > $1.sizeBytes }
+                if !app.isSystemApp {
+                    copy.relatedItems = (appRelatedMap[app.id] ?? []).sorted { $0.sizeBytes > $1.sizeBytes }
+                } else {
+                    copy.relatedItems = []
+                }
                 return copy
             }
             .sorted { $0.totalFootprintBytes > $1.totalFootprintBytes }
         
         return OrphanScanResult(
             orphanedItems: orphanedItems.sorted { $0.sizeBytes > $1.sizeBytes },
-            installedApps: userApps,
+            installedApps: finalApps,
             installedTokens: installedTokens
         )
     }
@@ -259,7 +363,7 @@ public enum OrphanedAppsScanner {
         let version = (plist?["CFBundleShortVersionString"] as? String) ?? "1.0"
         
         let sizeBytes: Int64 = calculateBundleSize
-            ? DiskSizeCalculator.calculateMetrics(at: url, maxFiles: 1_200).sizeBytes
+            ? DiskSizeCalculator.calculateMetrics(at: url, maxFiles: 50_000).sizeBytes
             : 0
         
         return InstalledApp(
@@ -302,70 +406,121 @@ public enum OrphanedAppsScanner {
         return tokens
     }
     
-    private struct IndexedAppEntry {
-        let app: InstalledApp
-        let bundleIDLower: String
-        let normalizedName: String
-        let tokens: Set<String>
+    public struct IndexedAppEntry: Sendable {
+        public let app: InstalledApp
+        public let bundleIDLower: String
+        public let normalizedName: String
+        public let tokens: Set<String>
+        
+        public init(app: InstalledApp, bundleIDLower: String, normalizedName: String, tokens: Set<String>) {
+            self.app = app
+            self.bundleIDLower = bundleIDLower
+            self.normalizedName = normalizedName
+            self.tokens = tokens
+        }
     }
     
-    private static func normalizeToken(_ raw: String) -> String {
+    public static func normalizeToken(_ raw: String) -> String {
         raw.lowercased().filter { $0.isLetter || $0.isNumber }
     }
     
-    private static func findMatchingInstalledApp(
+    /// Unambiguously finds the single installed app strongly associated with this folder name.
+    /// Never attaches umbrella vendor folders, generic names, or ambiguous folders matching multiple apps.
+    public static func findStrongMatchApp(
         forFolderName folderName: String,
-        indexedApps: [IndexedAppEntry],
-        installedTokens: Set<String>
+        indexedApps: [IndexedAppEntry]
     ) -> InstalledApp? {
         let lower = folderName.lowercased()
         let cleaned = lower
             .replacingOccurrences(of: ".savedstate", with: "")
             .replacingOccurrences(of: ".binarycookies", with: "")
+            .replacingOccurrences(of: "group.", with: "")
+        let folderNorm = normalizeToken(cleaned)
+        
+        // Never match if folder name is generic or an umbrella vendor root
+        if umbrellaVendors.contains(folderNorm) || genericTokens.contains(folderNorm) {
+            return nil
+        }
+        
+        var matches: [InstalledApp] = []
+        
+        // 1. Exact Bundle ID or Bundle ID prefix/suffix match (Strongest)
+        for entry in indexedApps {
+            let bid = entry.bundleIDLower
+            guard !bid.isEmpty, bid != "unknown" else { continue }
+            if cleaned == bid || cleaned.hasPrefix(bid + ".") || cleaned.hasSuffix("." + bid) {
+                matches.append(entry.app)
+            }
+        }
+        
+        if !matches.isEmpty {
+            return matches.count == 1 ? matches.first : nil
+        }
+        
+        // 2. Exact App Name match (normalized folder name matches normalized app name exactly)
+        if folderNorm.count >= 4 {
+            for entry in indexedApps {
+                let appNorm = entry.normalizedName
+                guard appNorm.count >= 4, !umbrellaVendors.contains(appNorm), !genericTokens.contains(appNorm) else { continue }
+                if folderNorm == appNorm {
+                    matches.append(entry.app)
+                }
+            }
+        }
+        
+        return matches.count == 1 ? matches.first : nil
+    }
+    
+    /// Checks whether a folder in ~/Library is linked to any active app or package (preventing false orphan alerts).
+    public static func isFolderAssociatedWithAnyApp(
+        folderName: String,
+        indexedApps: [IndexedAppEntry],
+        installedTokens: Set<String>
+    ) -> Bool {
+        let lower = folderName.lowercased()
+        let cleaned = lower
+            .replacingOccurrences(of: ".savedstate", with: "")
+            .replacingOccurrences(of: ".binarycookies", with: "")
+            .replacingOccurrences(of: "group.", with: "")
+        let folderNorm = normalizeToken(cleaned)
+        
+        if umbrellaVendors.contains(folderNorm) {
+            // Associated if any app from this vendor is currently installed
+            return indexedApps.contains { $0.tokens.contains(folderNorm) || $0.bundleIDLower.contains(folderNorm) }
+        }
+        
+        if installedTokens.contains(folderNorm) {
+            return true
+        }
         
         for entry in indexedApps {
             let bid = entry.bundleIDLower
             if cleaned == bid || cleaned.hasPrefix(bid + ".") || cleaned.hasSuffix("." + bid) {
-                return entry.app
+                return true
+            }
+            if entry.normalizedName == folderNorm && folderNorm.count >= 4 {
+                return true
+            }
+            if entry.tokens.contains(folderNorm) {
+                return true
             }
         }
         
-        let folderNorm = normalizeToken(cleaned)
         let folderParts = cleaned
             .components(separatedBy: CharacterSet(charactersIn: ".-_ "))
             .map { normalizeToken($0) }
             .filter { $0.count >= 4 && !genericTokens.contains($0) }
         
-        for entry in indexedApps {
-            let appNorm = entry.normalizedName
-            if appNorm.count >= 3 && (folderNorm == appNorm || folderNorm.contains(appNorm)) {
-                return entry.app
+        for part in folderParts {
+            if installedTokens.contains(part) {
+                return true
             }
-            for part in folderParts {
-                if entry.tokens.contains(part) {
-                    return entry.app
-                }
+            for entry in indexedApps where entry.tokens.contains(part) {
+                return true
             }
         }
         
-        if installedTokens.contains(folderNorm) {
-            return InstalledApp(
-                bundleURL: URL(fileURLWithPath: "/opt/homebrew"),
-                name: folderName,
-                bundleIdentifier: folderName,
-                appBundleSizeBytes: 0
-            )
-        }
-        for part in folderParts where installedTokens.contains(part) {
-            return InstalledApp(
-                bundleURL: URL(fileURLWithPath: "/opt/homebrew"),
-                name: folderName,
-                bundleIdentifier: folderName,
-                appBundleSizeBytes: 0
-            )
-        }
-        
-        return nil
+        return false
     }
     
     private static func humanizeFolderName(_ folderName: String) -> String {

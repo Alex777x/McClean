@@ -1,4 +1,5 @@
 import Foundation
+import AppKit
 
 /// Represents an installed macOS application (.app) along with its discovered support/cache/container directories.
 public struct InstalledApp: Identifiable, Hashable, Sendable {
@@ -40,13 +41,42 @@ public struct InstalledApp: Identifiable, Hashable, Sendable {
     }
     
     public var isSystemApp: Bool {
-        bundleURL.path.hasPrefix("/System/") || bundleURL.path.hasPrefix("/System/Applications")
+        let p = bundleURL.path
+        if p.hasPrefix("/System/") || p.hasPrefix("/System/Applications") {
+            return true
+        }
+        if p == "/Applications/Safari.app" || p.hasPrefix("/Applications/Utilities") {
+            return true
+        }
+        if bundleIdentifier.hasPrefix("com.apple.") && !p.contains("/Users/") {
+            return true
+        }
+        if !FileManager.default.isWritableFile(atPath: p) {
+            return true
+        }
+        return false
+    }
+    
+    public var isSelfApp: Bool {
+        if let mainID = Bundle.main.bundleIdentifier, !mainID.isEmpty, bundleIdentifier == mainID {
+            return true
+        }
+        if bundleURL.standardizedFileURL.path == Bundle.main.bundleURL.standardizedFileURL.path {
+            return true
+        }
+        return name.lowercased() == "mcclean" || bundleIdentifier == "com.mcclean.app"
+    }
+    
+    public var isRunning: Bool {
+        guard !bundleIdentifier.isEmpty else { return false }
+        return !NSRunningApplication.runningApplications(withBundleIdentifier: bundleIdentifier).isEmpty
     }
     
     public var installLocationLabel: String {
         let p = bundleURL.path
-        if p.hasPrefix("/System/") { return "macOS System" }
-        if p.contains("/Users/") { return "~/Applications" }
+        if isSystemApp { return "macOS System" }
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        if p.hasPrefix(home) { return "~/Applications" }
         return "/Applications"
     }
     

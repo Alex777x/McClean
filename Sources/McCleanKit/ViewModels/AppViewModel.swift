@@ -38,6 +38,16 @@ public enum AppScopeFilter: String, CaseIterable, Identifiable, Sendable {
     public var id: String { rawValue }
 }
 
+/// Identifiable wrapper for batch application uninstallation confirmation sheets.
+public struct BatchAppsWrapper: Identifiable, Sendable {
+    public var id: String { apps.map(\.bundleURL.path).joined(separator: "|") }
+    public let apps: [InstalledApp]
+    
+    public init(apps: [InstalledApp]) {
+        self.apps = apps
+    }
+}
+
 @MainActor
 public final class AppViewModel: ObservableObject {
     @Published public var selectedSection: NavigationSection = .smartScan
@@ -77,16 +87,30 @@ public final class AppViewModel: ObservableObject {
         .developerAndAICaches
     ]
     @Published public var expandedItemIDs: Set<UUID> = []
-    @Published public var expandedAppIDs: Set<UUID> = []
+    @Published public var expandedAppPaths: Set<String> = []
     @Published public var appLeftoversTab: Int = 0 {
         didSet { syncActiveSectionSelections() }
     }
     @Published public var isScanningApps: Bool = false
     @Published public var appSortOption: AppSortOption = .largestTotal
     @Published public var appScopeFilter: AppScopeFilter = .all
-    @Published public var selectedAppIDsForUninstall: Set<UUID> = []
+    @Published public var selectedAppBundlePaths: Set<String> = []
     @Published public var appToConfirmUninstall: InstalledApp? = nil
-    @Published public var appsToConfirmBatchUninstall: [InstalledApp]? = nil
+    @Published public var batchUninstallWrapper: BatchAppsWrapper? = nil
+    
+    public var appsToConfirmBatchUninstall: [InstalledApp]? {
+        get { batchUninstallWrapper?.apps }
+        set { batchUninstallWrapper = newValue.map { BatchAppsWrapper(apps: $0) } }
+    }
+    
+    public var selectedAppIDsForUninstall: Set<UUID> {
+        get { Set(installedApps.filter { selectedAppBundlePaths.contains($0.bundleURL.path) }.map(\.id)) }
+        set { selectedAppBundlePaths = Set(installedApps.filter { newValue.contains($0.id) }.map(\.bundleURL.path)) }
+    }
+    public var expandedAppIDs: Set<UUID> {
+        get { Set(installedApps.filter { expandedAppPaths.contains($0.bundleURL.path) }.map(\.id)) }
+        set { expandedAppPaths = Set(installedApps.filter { newValue.contains($0.id) }.map(\.bundleURL.path)) }
+    }
     @Published public var systemJunkFilter: JunkCategory? = nil {
         didSet { syncActiveSectionSelections() }
     }
@@ -121,6 +145,7 @@ public final class AppViewModel: ObservableObject {
     
     private let whitelistStorageKey = "com.mcclean.customWhitelist"
     private var scanTask: Task<Void, Never>?
+    private var appScanTask: Task<Void, Never>?
     
     public init() {
         let defaults = UserDefaults.standard
@@ -317,6 +342,8 @@ public final class AppViewModel: ObservableObject {
     
     public func startSmartScan() {
         scanTask?.cancel()
+        appScanTask?.cancel()
+        isScanningApps = false
         isScanning = true
         scanProgress = 0.08
         scanStatusMessage = "Indexing installed applications & ~/Library..."
@@ -521,10 +548,11 @@ public final class AppViewModel: ObservableObject {
     
     public func toggleAppForUninstall(_ appID: UUID) {
         guard let idx = installedApps.firstIndex(where: { $0.id == appID }) else { return }
-        installedApps[idx].isSelectedForUninstall.toggle()
+        toggleAppSelection(for: installedApps[idx])
     }
     
     public func uninstallAppImmediately(_ app: InstalledApp) {
+        guard !app.isSystemApp, !app.isRunning else { return }
         var targets: [ScanItem] = [
             ScanItem(
                 url: app.bundleURL,
@@ -542,16 +570,22 @@ public final class AppViewModel: ObservableObject {
         targets.append(contentsOf: app.relatedItems)
         
         isCleaning = true
+        cleaningItemName = "Uninstalling \(app.name)..."
+        let appBundlePath = app.bundleURL.path
+        let whitelistSet = Set(self.customWhitelist)
+        
         Task {
             let report = await Task.detached(priority: .userInitiated) {
                 CleanupService.cleanImmediately(
                     items: targets,
-                    allowProtectedOverride: true
+                    customWhitelistedPaths: whitelistSet,
+                    allowProtectedOverride: false
                 )
             }.value
             
-            if !FileManager.default.fileExists(atPath: app.bundleURL.path) {
-                self.installedApps.removeAll { $0.id == app.id }
+            if !FileManager.default.fileExists(atPath: appBundlePath) {
+                self.installedApps.removeAll { $0.bundleURL.path == appBundlePath }
+                self.selectedAppBundlePaths.remove(appBundlePath)
             }
             self.diskUsage = DiskVolumeUsage.current()
             self.lifetimeBytesFreed += report.totalBytesFreed
@@ -570,8 +604,9 @@ public final class AppViewModel: ObservableObject {
     
     public func refreshInstalledApps() {
         guard !isScanning, !isScanningApps else { return }
+        appScanTask?.cancel()
         isScanningApps = true
-        Task {
+        appScanTask = Task {
             let result = await Task.detached(priority: .userInitiated) {
                 OrphanedAppsScanner.scan()
             }.value
@@ -588,26 +623,32 @@ public final class AppViewModel: ObservableObject {
         }
     }
     
-    public func toggleAppSelection(for appID: UUID) {
-        guard let app = installedApps.first(where: { $0.id == appID }), !app.isSystemApp else { return }
-        if selectedAppIDsForUninstall.contains(appID) {
-            selectedAppIDsForUninstall.remove(appID)
+    public func toggleAppSelection(for app: InstalledApp) {
+        guard !app.isSystemApp, !app.isRunning else { return }
+        let path = app.bundleURL.path
+        if selectedAppBundlePaths.contains(path) {
+            selectedAppBundlePaths.remove(path)
         } else {
-            selectedAppIDsForUninstall.insert(appID)
+            selectedAppBundlePaths.insert(path)
         }
     }
     
+    public func toggleAppSelection(for appID: UUID) {
+        guard let app = installedApps.first(where: { $0.id == appID }) else { return }
+        toggleAppSelection(for: app)
+    }
+    
     public func selectAllUserAppsForUninstall() {
-        let userAppIDs = installedApps.filter { !$0.isSystemApp }.map(\.id)
-        selectedAppIDsForUninstall = Set(userAppIDs)
+        let selectable = installedApps.filter { !$0.isSystemApp && !$0.isRunning }
+        selectedAppBundlePaths = Set(selectable.map(\.bundleURL.path))
     }
     
     public func deselectAllAppsForUninstall() {
-        selectedAppIDsForUninstall.removeAll()
+        selectedAppBundlePaths.removeAll()
     }
     
     public var selectedAppsForUninstall: [InstalledApp] {
-        installedApps.filter { selectedAppIDsForUninstall.contains($0.id) }
+        installedApps.filter { selectedAppBundlePaths.contains($0.bundleURL.path) }
     }
     
     public var selectedAppsTotalBytes: Int64 {
@@ -615,10 +656,11 @@ public final class AppViewModel: ObservableObject {
     }
     
     public func uninstallBatchAppsImmediately(_ apps: [InstalledApp]) {
-        guard !apps.isEmpty else { return }
+        let actionableApps = apps.filter { !$0.isSystemApp && !$0.isRunning }
+        guard !actionableApps.isEmpty else { return }
+        
         var targets: [ScanItem] = []
-        for app in apps {
-            guard !app.isSystemApp else { continue }
+        for app in actionableApps {
             targets.append(
                 ScanItem(
                     url: app.bundleURL,
@@ -637,19 +679,24 @@ public final class AppViewModel: ObservableObject {
         }
         
         isCleaning = true
-        cleaningItemName = apps.first?.name ?? "Uninstalling applications..."
-        let appIDsToRemove = Set(apps.map(\.id))
+        cleaningItemName = actionableApps.first?.name ?? "Uninstalling applications..."
+        let whitelistSet = Set(self.customWhitelist)
         
         Task {
             let report = await Task.detached(priority: .userInitiated) {
                 CleanupService.cleanImmediately(
                     items: targets,
-                    allowProtectedOverride: true
+                    customWhitelistedPaths: whitelistSet,
+                    allowProtectedOverride: false
                 )
             }.value
             
-            self.installedApps.removeAll { appIDsToRemove.contains($0.id) }
-            self.selectedAppIDsForUninstall.subtract(appIDsToRemove)
+            let deletedPaths = Set(
+                actionableApps.filter { !FileManager.default.fileExists(atPath: $0.bundleURL.path) }
+                    .map(\.bundleURL.path)
+            )
+            self.installedApps.removeAll { deletedPaths.contains($0.bundleURL.path) }
+            self.selectedAppBundlePaths.subtract(deletedPaths)
             self.diskUsage = DiskVolumeUsage.current()
             self.lifetimeBytesFreed += report.totalBytesFreed
             self.latestCleanupReport = report

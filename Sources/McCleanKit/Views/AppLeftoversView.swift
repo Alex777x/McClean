@@ -83,6 +83,9 @@ public struct AppLeftoversView: View {
         .sheet(item: $viewModel.appToConfirmUninstall) { app in
             uninstallConfirmationModal(for: app)
         }
+        .sheet(item: $viewModel.batchUninstallWrapper) { wrapper in
+            batchUninstallConfirmationModal(for: wrapper.apps)
+        }
     }
     
     // MARK: - Header
@@ -184,7 +187,7 @@ public struct AppLeftoversView: View {
             controlsToolbar
             
             // Batch Selection Action Card (if any apps selected)
-            if !viewModel.selectedAppIDsForUninstall.isEmpty {
+            if !viewModel.selectedAppsForUninstall.isEmpty {
                 batchSelectionBar
             }
             
@@ -263,13 +266,13 @@ public struct AppLeftoversView: View {
             
             // Select All User Apps Toggle
             Button {
-                if viewModel.selectedAppIDsForUninstall.isEmpty {
+                if viewModel.selectedAppsForUninstall.isEmpty {
                     viewModel.selectAllUserAppsForUninstall()
                 } else {
                     viewModel.deselectAllAppsForUninstall()
                 }
             } label: {
-                Text(viewModel.selectedAppIDsForUninstall.isEmpty ? "Select All" : "Deselect All")
+                Text(viewModel.selectedAppsForUninstall.isEmpty ? "Select All" : "Deselect All")
                     .font(.system(size: 10.5, weight: .medium))
                     .foregroundStyle(McCleanTheme.accentAmber)
                     .padding(.horizontal, 10)
@@ -311,7 +314,8 @@ public struct AppLeftoversView: View {
             
             Button {
                 let targets = viewModel.selectedAppsForUninstall
-                viewModel.uninstallBatchAppsImmediately(targets)
+                guard !targets.isEmpty else { return }
+                viewModel.appsToConfirmBatchUninstall = targets
             } label: {
                 HStack(spacing: 5) {
                     Image(systemName: "trash")
@@ -338,22 +342,28 @@ public struct AppLeftoversView: View {
     }
     
     private func installedAppCard(_ app: InstalledApp) -> some View {
-        let isExpanded = viewModel.expandedAppIDs.contains(app.id)
-        let isChecked = viewModel.selectedAppIDsForUninstall.contains(app.id)
+        let isExpanded = viewModel.expandedAppPaths.contains(app.bundleURL.path)
+        let isChecked = viewModel.selectedAppBundlePaths.contains(app.bundleURL.path)
         
         return VStack(alignment: .leading, spacing: 0) {
             HStack(spacing: 12) {
-                // Batch Checkbox (Disabled for macOS System apps)
-                if !app.isSystemApp {
+                // Batch Checkbox (Disabled for macOS System apps and Running apps)
+                if !app.isSystemApp && !app.isRunning {
                     GlassCheckbox(isChecked: isChecked) {
-                        viewModel.toggleAppSelection(for: app.id)
+                        viewModel.toggleAppSelection(for: app)
                     }
-                } else {
+                } else if app.isSystemApp {
                     Image(systemName: "lock.fill")
                         .font(.system(size: 11))
                         .foregroundStyle(McCleanTheme.textMuted)
                         .frame(width: 18, height: 18)
                         .help("macOS System Application — Protected by System Integrity Protection (SIP)")
+                } else {
+                    Image(systemName: "pause.circle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(McCleanTheme.accentAmber)
+                        .frame(width: 18, height: 18)
+                        .help("Application is currently running. Quit \(app.name) before uninstalling.")
                 }
                 
                 // App Retina Icon
@@ -390,6 +400,13 @@ public struct AppLeftoversView: View {
                                 .padding(.vertical, 1)
                                 .background(McCleanTheme.accentCyan.opacity(0.12), in: Capsule())
                                 .foregroundStyle(McCleanTheme.accentCyan)
+                        } else if app.isRunning {
+                            Text("RUNNING")
+                                .font(.system(size: 8, weight: .bold))
+                                .padding(.horizontal, 5)
+                                .padding(.vertical, 1)
+                                .background(McCleanTheme.accentAmber.opacity(0.15), in: Capsule())
+                                .foregroundStyle(McCleanTheme.accentAmber)
                         }
                     }
                     
@@ -427,9 +444,9 @@ public struct AppLeftoversView: View {
                     if !app.relatedItems.isEmpty {
                         Button {
                             if isExpanded {
-                                viewModel.expandedAppIDs.remove(app.id)
+                                viewModel.expandedAppPaths.remove(app.bundleURL.path)
                             } else {
-                                viewModel.expandedAppIDs.insert(app.id)
+                                viewModel.expandedAppPaths.insert(app.bundleURL.path)
                             }
                         } label: {
                             HStack(spacing: 3) {
@@ -457,7 +474,27 @@ public struct AppLeftoversView: View {
                 .help("Reveal \(app.name).app in Finder")
                 
                 // Uninstall Button
-                if !app.isSystemApp {
+                if app.isSystemApp {
+                    Text("Protected")
+                        .font(.system(size: 10.5, weight: .medium))
+                        .foregroundStyle(McCleanTheme.textMuted)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(Color.black.opacity(0.04), in: RoundedRectangle(cornerRadius: 6))
+                } else if app.isRunning {
+                    Button {
+                    } label: {
+                        Text("Quit to Uninstall")
+                            .font(.system(size: 10.5, weight: .medium))
+                            .foregroundStyle(McCleanTheme.accentAmber)
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(McCleanTheme.accentAmber.opacity(0.10), in: RoundedRectangle(cornerRadius: 6))
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(true)
+                    .help("Quit \(app.name) before uninstalling")
+                } else {
                     Button {
                         viewModel.appToConfirmUninstall = app
                     } label: {
@@ -470,13 +507,6 @@ public struct AppLeftoversView: View {
                     }
                     .buttonStyle(.plain)
                     .help("Completely uninstall \(app.name) and all associated ~/Library folders")
-                } else {
-                    Text("Protected")
-                        .font(.system(size: 10.5, weight: .medium))
-                        .foregroundStyle(McCleanTheme.textMuted)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color.black.opacity(0.04), in: RoundedRectangle(cornerRadius: 6))
                 }
             }
             .padding(14)
@@ -663,6 +693,118 @@ public struct AppLeftoversView: View {
         }
         .padding(24)
         .frame(width: 540)
+        .background(McCleanTheme.windowBackground)
+    }
+    
+    // MARK: - Batch Uninstall Confirmation Modal
+    
+    private func batchUninstallConfirmationModal(for apps: [InstalledApp]) -> some View {
+        let totalBytes = apps.reduce(0) { $0 + $1.totalFootprintBytes }
+        let totalLibraryFolders = apps.reduce(0) { $0 + $1.relatedItems.count }
+        
+        return VStack(alignment: .leading, spacing: 18) {
+            HStack(spacing: 14) {
+                Image(systemName: "trash.circle.fill")
+                    .font(.system(size: 38))
+                    .foregroundStyle(McCleanTheme.accentCoral)
+                
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Permanently Uninstall \(apps.count) Applications?")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(McCleanTheme.textPrimary)
+                    Text("Permanently deletes \(apps.count) application bundles and all \(totalLibraryFolders) associated ~/Library support folders (\(ByteCountFormatterHelper.format(bytes: totalBytes)) total).")
+                        .font(.system(size: 12))
+                        .foregroundStyle(McCleanTheme.textSecondary)
+                }
+            }
+            
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 12))
+                        .foregroundStyle(McCleanTheme.accentAmber)
+                    Text("Permanent Deletion Warning")
+                        .font(.system(size: 11.5, weight: .semibold))
+                        .foregroundStyle(McCleanTheme.textPrimary)
+                }
+                Text("These applications and their preferences, caches, and application support files will be permanently erased without moving to Trash. This action cannot be undone.")
+                    .font(.system(size: 11))
+                    .foregroundStyle(McCleanTheme.textSecondary)
+            }
+            .padding(12)
+            .background(McCleanTheme.accentAmber.opacity(0.08), in: RoundedRectangle(cornerRadius: 6))
+            .overlay(
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(McCleanTheme.accentAmber.opacity(0.25), lineWidth: 1)
+            )
+            
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 6) {
+                    ForEach(apps) { app in
+                        HStack(spacing: 10) {
+                            Image(nsImage: AppIconCache.icon(for: app.bundleURL))
+                                .resizable()
+                                .frame(width: 24, height: 24)
+                            
+                            VStack(alignment: .leading, spacing: 1) {
+                                Text(app.name)
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundStyle(McCleanTheme.textPrimary)
+                                Text("\(app.formattedAppSize) • \(app.relatedItems.count) library folders (\(app.formattedSupportSize))")
+                                    .font(.system(size: 10))
+                                    .monospacedDigit()
+                                    .foregroundStyle(McCleanTheme.textSecondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Text(app.formattedTotalSize)
+                                .font(.system(size: 11.5, weight: .bold))
+                                .monospacedDigit()
+                                .foregroundStyle(McCleanTheme.textPrimary)
+                        }
+                        .padding(8)
+                        .glassCard(cornerRadius: 6)
+                    }
+                }
+            }
+            .frame(maxHeight: 220)
+            
+            HStack {
+                Button {
+                    viewModel.batchUninstallWrapper = nil
+                } label: {
+                    Text("Cancel")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(McCleanTheme.textSecondary)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .liquidGlassRect(cornerRadius: 6, interactive: true)
+                }
+                .buttonStyle(.plain)
+                
+                Spacer()
+                
+                Button {
+                    let targets = apps
+                    viewModel.batchUninstallWrapper = nil
+                    viewModel.uninstallBatchAppsImmediately(targets)
+                } label: {
+                    Text("Permanently Uninstall All (\(ByteCountFormatterHelper.format(bytes: totalBytes)))")
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundStyle(McCleanTheme.inkDark)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8.5)
+                        .background(
+                            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                                .fill(McCleanTheme.accentCoral)
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .padding(24)
+        .frame(width: 560)
         .background(McCleanTheme.windowBackground)
     }
 }
