@@ -48,12 +48,6 @@ public struct InstalledApp: Identifiable, Hashable, Sendable {
         if p == "/Applications/Safari.app" || p.hasPrefix("/Applications/Utilities") {
             return true
         }
-        if bundleIdentifier.hasPrefix("com.apple.") && !p.contains("/Users/") {
-            return true
-        }
-        if !FileManager.default.isWritableFile(atPath: p) {
-            return true
-        }
         return false
     }
     

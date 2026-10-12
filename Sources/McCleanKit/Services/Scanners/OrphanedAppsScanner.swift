@@ -78,7 +78,7 @@ public enum OrphanedAppsScanner {
     /// Multi-product vendors whose top-level ~/Library folders must NEVER be attached to a single app for deletion.
     public static let umbrellaVendors: Set<String> = [
         "google", "microsoft", "adobe", "jetbrains", "mozilla",
-        "apple", "epic", "valve", "steam", "amazon", "oracle",
+        "apple", "epic", "valve", "steam", "blizzard", "amazon", "oracle",
         "meta", "facebook", "dropbox", "atlassian", "unity"
     ]
     
@@ -119,6 +119,68 @@ public enum OrphanedAppsScanner {
                         installedBundleIDs.insert(app.bundleIdentifier.lowercased())
                         for token in extractTokens(appName: app.name, bundleID: app.bundleIdentifier) {
                             installedTokens.insert(token)
+                        }
+                    }
+                } else if dir.path != "/System/Applications" && url.lastPathComponent != "Utilities" {
+                    var isDir: ObjCBool = false
+                    if fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
+                        if let subEntries = try? fm.contentsOfDirectory(
+                            at: url,
+                            includingPropertiesForKeys: [.isDirectoryKey, .isPackageKey],
+                            options: [.skipsHiddenFiles]
+                        ) {
+                            let subApps = subEntries.filter { $0.pathExtension.lowercased() == "app" }
+                            if subApps.count == 1, let singleAppURL = subApps.first {
+                                // Dedicated application/game folder (e.g. /Applications/Heroes of the Storm)
+                                var extraRelatedItems: [ScanItem] = []
+                                for sibling in subEntries where sibling.path != singleAppURL.path {
+                                    let sibMetrics = DiskSizeCalculator.calculateMetrics(at: sibling, maxFiles: 50_000)
+                                    if sibMetrics.sizeBytes > 0 {
+                                        var sibIsDir: ObjCBool = false
+                                        fm.fileExists(atPath: sibling.path, isDirectory: &sibIsDir)
+                                        extraRelatedItems.append(
+                                            ScanItem(
+                                                url: sibling,
+                                                name: "\(url.lastPathComponent): \(sibling.lastPathComponent)",
+                                                sizeBytes: sibMetrics.sizeBytes,
+                                                category: .orphanedLeftovers,
+                                                safetyLevel: .review,
+                                                explanation: "Dedicated data and resources inside application folder '\(url.lastPathComponent)'.",
+                                                associatedAppName: url.lastPathComponent,
+                                                isOrphaned: false,
+                                                isDirectory: sibIsDir.boolValue,
+                                                lastModified: sibMetrics.lastModified,
+                                                fileCount: sibMetrics.fileCount,
+                                                isSelected: true
+                                            )
+                                        )
+                                    }
+                                }
+                                
+                                if let app = inspectAppBundle(at: singleAppURL, calculateBundleSize: true, initialRelatedItems: extraRelatedItems) {
+                                    if app.isSelfApp { continue }
+                                    discoveredApps.append(app)
+                                    installedBundleIDs.insert(app.bundleIdentifier.lowercased())
+                                    for token in extractTokens(appName: app.name, bundleID: app.bundleIdentifier) {
+                                        installedTokens.insert(token)
+                                    }
+                                    for token in extractTokens(appName: url.lastPathComponent, bundleID: "") {
+                                        installedTokens.insert(token)
+                                    }
+                                }
+                            } else if subApps.count > 1 {
+                                // Multi-app suite directory (e.g. /Applications/Epson Software)
+                                for subAppURL in subApps {
+                                    if let app = inspectAppBundle(at: subAppURL, calculateBundleSize: true) {
+                                        if app.isSelfApp { continue }
+                                        discoveredApps.append(app)
+                                        installedBundleIDs.insert(app.bundleIdentifier.lowercased())
+                                        for token in extractTokens(appName: app.name, bundleID: app.bundleIdentifier) {
+                                            installedTokens.insert(token)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -334,7 +396,7 @@ public enum OrphanedAppsScanner {
             .map { app in
                 var copy = app
                 if !app.isSystemApp {
-                    copy.relatedItems = (appRelatedMap[app.id] ?? []).sorted { $0.sizeBytes > $1.sizeBytes }
+                    copy.relatedItems = (copy.relatedItems + (appRelatedMap[app.id] ?? [])).sorted { $0.sizeBytes > $1.sizeBytes }
                 } else {
                     copy.relatedItems = []
                 }
@@ -351,7 +413,11 @@ public enum OrphanedAppsScanner {
     
     // MARK: - Helpers
     
-    private static func inspectAppBundle(at url: URL, calculateBundleSize: Bool) -> InstalledApp? {
+    private static func inspectAppBundle(
+        at url: URL,
+        calculateBundleSize: Bool,
+        initialRelatedItems: [ScanItem] = []
+    ) -> InstalledApp? {
         let infoPlistURL = url.appendingPathComponent("Contents/Info.plist")
         let plist = NSDictionary(contentsOf: infoPlistURL) as? [String: Any]
         
@@ -371,7 +437,8 @@ public enum OrphanedAppsScanner {
             name: displayName,
             bundleIdentifier: bundleID,
             version: version,
-            appBundleSizeBytes: sizeBytes
+            appBundleSizeBytes: sizeBytes,
+            relatedItems: initialRelatedItems
         )
     }
     
@@ -463,6 +530,17 @@ public enum OrphanedAppsScanner {
                 let appNorm = entry.normalizedName
                 guard appNorm.count >= 4, !umbrellaVendors.contains(appNorm), !genericTokens.contains(appNorm) else { continue }
                 if folderNorm == appNorm {
+                    matches.append(entry.app)
+                }
+            }
+        }
+        
+        // 3. Suffix match for reverse-domain folders (e.g. com.blizzard.heroesofthestorm matching heroesofthestorm)
+        if matches.isEmpty && folderNorm.count >= 6 {
+            for entry in indexedApps {
+                let appNorm = entry.normalizedName
+                guard appNorm.count >= 6, !umbrellaVendors.contains(appNorm), !genericTokens.contains(appNorm) else { continue }
+                if folderNorm.hasSuffix(appNorm) {
                     matches.append(entry.app)
                 }
             }

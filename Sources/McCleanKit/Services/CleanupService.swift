@@ -127,6 +127,7 @@ public enum CleanupService {
         
         do {
             try fm.removeItem(at: url)
+            cleanupDedicatedAppParentIfEligible(for: url)
             return .success(expectedBytes)
         } catch {
             // Fallback 1: If the parent directory is locked (e.g., idleassetsd/Customer or a container root),
@@ -135,6 +136,7 @@ public enum CleanupService {
             if fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
                 let innerOutcome = deleteContentsInsideDirectory(at: url, expectedBytes: expectedBytes)
                 if case .success = innerOutcome {
+                    cleanupDedicatedAppParentIfEligible(for: url)
                     return innerOutcome
                 }
             }
@@ -143,6 +145,14 @@ public enum CleanupService {
             // attempt privileged deletion via AppleScript administrator prompt if running interactively.
             if url.path.hasPrefix("/Library/Application Support/com.apple.idleassetsd/") {
                 if deleteSystemIdleAssetsWithAdminPrompt(at: url) {
+                    return .success(expectedBytes)
+                }
+            }
+            
+            // Fallback 3: Root-owned user apps or resources in /Applications/ (e.g. App Store apps like CapCut, Keynote)
+            if url.path.hasPrefix("/Applications/") && !url.path.hasPrefix("/Applications/Utilities") && url.path != "/Applications/Safari.app" {
+                if deleteAppWithAdminPrompt(at: url) {
+                    cleanupDedicatedAppParentIfEligible(for: url)
                     return .success(expectedBytes)
                 }
             }
@@ -202,5 +212,66 @@ public enum CleanupService {
         appleScript.executeAndReturnError(&errorDict)
         return errorDict == nil
         #endif
+    }
+    
+    private static func deleteAppWithAdminPrompt(at url: URL) -> Bool {
+        let path = url.standardizedFileURL.path
+        // Guard against touching system root, /System, /Applications itself, /Applications/Utilities, or Safari
+        guard (path.hasPrefix("/Applications/") || path.hasPrefix("/Library/")),
+              !path.hasPrefix("/Applications/Utilities"),
+              !path.hasPrefix("/System"),
+              path != "/Applications/Safari.app",
+              path != "/Applications",
+              path != "/Applications/" else {
+            return false
+        }
+        
+        #if APP_STORE
+        DispatchQueue.main.async {
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+        }
+        return false
+        #else
+        let escapedPath = path
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "\"", with: "\\\"")
+        let scriptSource = "do shell script \"rm -rf \\\"\(escapedPath)\\\"\" with administrator privileges"
+        guard let appleScript = NSAppleScript(source: scriptSource) else {
+            return false
+        }
+        var errorDict: NSDictionary?
+        appleScript.executeAndReturnError(&errorDict)
+        return errorDict == nil
+        #endif
+    }
+    
+    /// Cleans up empty or metadata-only dedicated application directories in /Applications or ~/Applications after app removal.
+    private static func cleanupDedicatedAppParentIfEligible(for url: URL) {
+        let parentURL = url.deletingLastPathComponent()
+        let parentPath = parentURL.standardizedFileURL.path
+        
+        let home = FileManager.default.homeDirectoryForCurrentUser.path
+        let isDirectAppsSubdir = (parentPath.hasPrefix("/Applications/") && parentPath != "/Applications" && parentURL.deletingLastPathComponent().path == "/Applications")
+            || (parentPath.hasPrefix("\(home)/Applications/") && parentPath != "\(home)/Applications" && parentURL.deletingLastPathComponent().path == "\(home)/Applications")
+        
+        guard isDirectAppsSubdir else { return }
+        guard parentURL.lastPathComponent != "Utilities" else { return }
+        
+        let fm = FileManager.default
+        guard let allEntries = try? fm.contentsOfDirectory(at: parentURL, includingPropertiesForKeys: nil, options: []) else {
+            return
+        }
+        
+        // If empty or only contains invisible dotfiles / installer metadata (.build.info, .DS_Store, etc.) and no .app bundles
+        let hasAppBundles = allEntries.contains { $0.pathExtension.lowercased() == "app" }
+        let hasUserFiles = allEntries.contains { !$0.lastPathComponent.hasPrefix(".") }
+        
+        if !hasAppBundles && !hasUserFiles {
+            if (try? fm.removeItem(at: parentURL)) == nil {
+                #if !APP_STORE
+                _ = deleteAppWithAdminPrompt(at: parentURL)
+                #endif
+            }
+        }
     }
 }

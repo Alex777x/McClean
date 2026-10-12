@@ -303,7 +303,20 @@ public enum SelfTestRunner {
         try writeDummyFile(at: mockLibraryDir.appendingPathComponent("Application Support/Google/Chrome/User Data/Default/History"), sizeBytes: 250 * 1024)
         try writeDummyFile(at: mockLibraryDir.appendingPathComponent("Application Support/Google/DriveFS/root_metadata.db"), sizeBytes: 400 * 1024)
         
-        // 4. Run scanner
+        // 4. Setup mock dedicated game folder with sibling data: /Applications/MockGame/MockGame.app + MockGame/GameData
+        let mockGamePlistURL = mockAppsDir.appendingPathComponent("MockGame/MockGame.app/Contents/Info.plist")
+        try FileManager.default.createDirectory(at: mockGamePlistURL.deletingLastPathComponent(), withIntermediateDirectories: true)
+        let mockGamePlist: NSDictionary = [
+            "CFBundleName": "MockGame",
+            "CFBundleIdentifier": "com.blizzard.mockgame",
+            "CFBundleShortVersionString": "2.0"
+        ]
+        mockGamePlist.write(to: mockGamePlistURL, atomically: true)
+        try writeDummyFile(at: mockAppsDir.appendingPathComponent("MockGame/MockGame.app/Contents/MacOS/MockGame"), sizeBytes: 200 * 1024)
+        try writeDummyFile(at: mockAppsDir.appendingPathComponent("MockGame/GameData/data.pak"), sizeBytes: 800 * 1024)
+        try writeDummyFile(at: mockLibraryDir.appendingPathComponent("Application Support/Blizzard/MockGame/config.json"), sizeBytes: 100 * 1024)
+        
+        // 5. Run scanner
         let scanResult = OrphanedAppsScanner.scan(
             applicationDirectories: [mockAppsDir],
             userLibraryURL: mockLibraryDir,
@@ -336,7 +349,25 @@ public enum SelfTestRunner {
             "Other app's subfolder (DriveFS) must NOT be attached to Chrome"
         )
         
-        // (d) Test CleanupService with allowProtectedOverride: false preserves protected paths
+        // (d) Dedicated subfolder game (MockGame) should be discovered with sibling GameData and Blizzard support
+        guard let gameApp = scanResult.installedApps.first(where: { $0.name == "MockGame" }) else {
+            throw NSError(domain: "McCleanSelfTest", code: 11, userInfo: [NSLocalizedDescriptionKey: "Subfolder app MockGame not found in scan results"])
+        }
+        let gameRelatedNames = gameApp.relatedItems.map(\.name)
+        try assertCondition(
+            gameRelatedNames.contains { $0.contains("MockGame: GameData") },
+            "MockGame should have its sibling folder GameData attached as related item"
+        )
+        try assertCondition(
+            gameRelatedNames.contains { $0.contains("Blizzard/MockGame") },
+            "MockGame should have its Blizzard/MockGame library folder attached"
+        )
+        try assertCondition(
+            gameApp.totalFootprintBytes >= 1_000_000,
+            "MockGame total footprint must aggregate bundle size, sibling game data, and library items"
+        )
+        
+        // (e) Test CleanupService with allowProtectedOverride: false preserves protected paths
         let protectedSystemItem = ScanItem(
             url: URL(fileURLWithPath: "/System/Applications/Calculator.app"),
             name: "Calculator.app",
@@ -352,7 +383,15 @@ public enum SelfTestRunner {
         try assertCondition(cleanupReport.deletedRecords.isEmpty, "Protected items must not be deleted when allowProtectedOverride is false")
         try assertCondition(cleanupReport.failedItems.count == 1, "Protected item must be recorded in failedItems")
         
-        // (e) Verify isSystemApp and isRunning properties
+        // (f) Verify isSystemApp and isRunning properties (CapCut must NOT be system-protected)
+        let capcutApp = InstalledApp(
+            bundleURL: URL(fileURLWithPath: "/Applications/CapCut.app"),
+            name: "CapCut",
+            bundleIdentifier: "com.lemon.capcut",
+            appBundleSizeBytes: 500_000
+        )
+        try assertCondition(!capcutApp.isSystemApp, "CapCut must NOT be marked as isSystemApp")
+        
         let safariApp = InstalledApp(
             bundleURL: URL(fileURLWithPath: "/Applications/Safari.app"),
             name: "Safari",

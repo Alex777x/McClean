@@ -424,7 +424,7 @@ public struct AppLeftoversView: View {
                         if !app.relatedItems.isEmpty {
                             Text("•")
                                 .foregroundStyle(McCleanTheme.textMuted)
-                            Text("Library: \(app.formattedSupportSize) (\(app.relatedItems.count) folders)")
+                            Text("Data: \(app.formattedSupportSize) (\(app.relatedItems.count) items)")
                                 .font(.system(size: 10.5, weight: .medium))
                                 .monospacedDigit()
                                 .foregroundStyle(McCleanTheme.accentAmber)
@@ -518,7 +518,7 @@ public struct AppLeftoversView: View {
                     .frame(height: 1)
                 
                 VStack(alignment: .leading, spacing: 6) {
-                    Text("ASSOCIATED SUPPORT DIRECTORIES (\(app.relatedItems.count))")
+                    Text("ASSOCIATED DATA & SUPPORT DIRECTORIES (\(app.relatedItems.count))")
                         .font(.system(size: 8.5, weight: .bold))
                         .tracking(0.8)
                         .foregroundStyle(McCleanTheme.textMuted)
