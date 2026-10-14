@@ -25,7 +25,7 @@ Most macOS disk cleaners hide behind expensive annual subscriptions while only s
 **McClean** is **100% free and open source**:
 1. **Zero Paywalls, Zero Subscriptions** — Every feature is completely free forever, both on GitHub Releases and on the Mac App Store.
 2. **Deep Hidden Dotfiles & Wallpaper Discovery** — Finds `~/.wallpaper`, `/Library/Application Support/com.apple.idleassetsd/Customer/4KSDR240FPS`, `~/.ollama`, `~/.cache/huggingface`, `~/.npm`, `~/.cargo`, and unknown hidden dot-directories in `~`.
-3. **True Orphaned App Leftover Detection** — Indexes installed `.app` bundles across `/Applications`, `/System/Applications`, and `~/Applications` and flags only leftover containers/caches from **uninstalled** apps.
+3. **Complete Application Uninstaller & Orphaned Leftover Detection** — Accurately indexes installed applications (including dedicated subfolder games like Heroes of the Storm and software suites), calculates true multi-gigabyte disk footprints, completely uninstalls applications alongside their associated `~/Library` baggage, and detects orphaned residue from previously removed apps.
 4. **AI Folder Inspector** — Explains what any unfamiliar hidden folder is, which application created it, and whether it is safe to delete—using a 100% free offline heuristic engine or optional local Ollama (`http://127.0.0.1:11434`) / OpenAI-compatible endpoints.
 
 ---
@@ -43,6 +43,16 @@ McClean is developed and maintained for the community at zero cost. If McClean h
 - **Hardcoded Safety Whitelist**: Critical paths (`~/.ssh`, `~/.gnupg`, `~/.aws`, `~/.kube`, `~/.zshrc`, `~/.gitconfig`, `~/Library/Keychains`, `/System`) are permanently locked (`SafetyLevel.protected`) and cannot be selected or deleted.
 - **TCC-Safe Permission Onboarding**: Never triggers unprompted macOS security popups (`Photos`, `Mail`, `Messages`, `Safari`, `iCloud`). Uses App Store-compliant `NSOpenPanel` security-scoped bookmarks and lets you skip any optional folder.
 - **Immediate Permanent Deletion + Visual Analytics**: Permanently reclaims disk space and renders a post-cleanup category breakdown chart.
+
+---
+
+## Clean-Room Design & Intellectual Property
+
+McClean is an independent open-source utility developed from the ground up using a strict **clean-room software engineering approach**:
+
+- **100% Original Codebase**: All scanners, path databases, algorithms, heuristic engines, and SwiftUI views were authored from first principles. No proprietary source code, decompiled binaries, private schemas, or assets from third-party commercial cleaning utilities (such as CleanMyMac, AppCleaner, DaisyDisk, etc.) were accessed, viewed, reverse-engineered, or incorporated into this project.
+- **Standard Public APIs**: Built exclusively upon official, publicly documented Apple Developer frameworks (SwiftUI, AppKit, Foundation) and open POSIX filesystem specifications.
+- **Trademark Notice & Nominative Fair Use**: All trademarks, product names, logos, and brand identities referenced within this repository belong to their respective owners. Any reference to third-party applications, formats, or companies is strictly for technical compatibility, system interoperability, and descriptive identification under nominative fair use, and does not imply any affiliation, endorsement, or sponsorship.
 
 ---
 
